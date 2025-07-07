@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personality Test - Mindful Dining</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="page-header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <h1><a href="index.html">Mindful Dining</a></h1>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="test-main">
+        <div class="container">
+            <div class="test-container">
+                <div class="test-header">
+                    <h1>Personality Assessment</h1>
+                    <p>Help us understand your dining and social preferences so we can create the perfect group for your experience.</p>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <span class="progress-text" id="progress-text">Question 1 of 15</span>
+                    </div>
+                </div>
+
+                <div class="test-content">
+                    <div id="question-container" class="question-container">
+                        <!-- Questions will be loaded here dynamically -->
+                    </div>
+
+                    <div class="test-navigation">
+                        <button type="button" id="prev-button" class="nav-button secondary" disabled>Previous</button>
+                        <button type="button" id="next-button" class="nav-button primary">Next</button>
+                        <button type="button" id="submit-test" class="nav-button primary hidden">Complete Test</button>
+                    </div>
+                </div>
+
+                <div id="results-container" class="results-container hidden">
+                    <h2>Your Personality Profile</h2>
+                    <div id="personality-results"></div>
+                    <button type="button" id="save-results" class="submit-button">Save Results & Continue</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getFirestore, collection, addDoc, updateDoc, doc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+        
+        // Your Firebase config (replace with your actual config)
+        const firebaseConfig = {
+            // Add your Firebase config here
+            apiKey: "your-api-key",
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "your-app-id"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        window.db = db;
+        window.addDoc = addDoc;
+        window.updateDoc = updateDoc;
+        window.doc = doc;
+        window.collection = collection;
+    </script>
+    
+    <script src="js/personality-test.js"></script>
+</body>
+</html>

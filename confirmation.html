@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation - Mindful Dining</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="page-header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <h1><a href="index.html">Mindful Dining</a></h1>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="confirmation-main">
+        <div class="container">
+            <div class="confirmation-container">
+                <div class="success-icon">
+                    <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="50" cy="50" r="50" fill="#4CAF50"/>
+                        <path d="M25 50L40 65L75 30" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                
+                <h1>Reservation Confirmed!</h1>
+                <p class="confirmation-message">Thank you for your reservation. We're excited to create an amazing dining experience for you!</p>
+                
+                <div class="reservation-details" id="reservation-details">
+                    <!-- Reservation details will be populated here -->
+                </div>
+
+                <div class="next-steps">
+                    <h3>What's Next?</h3>
+                    <div class="steps-list">
+                        <div class="step-item">
+                            <span class="step-number">1</span>
+                            <div class="step-content">
+                                <h4>Confirmation Email</h4>
+                                <p>You'll receive a confirmation email with all the details within the next few minutes.</p>
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <span class="step-number">2</span>
+                            <div class="step-content">
+                                <h4>Table Assignment</h4>
+                                <p>Based on your personality test, we'll send you your table assignment and dining companion information 24 hours before your event.</p>
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <span class="step-number">3</span>
+                            <div class="step-content">
+                                <h4>Enjoy Your Experience</h4>
+                                <p>Arrive 15 minutes early to settle in and meet your table companions for an unforgettable evening.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="index.html" class="button secondary">Return Home</a>
+                    <button onclick="window.print()" class="button primary">Print Confirmation</button>
+                </div>
+
+                <div class="contact-info">
+                    <p>Questions about your reservation? Contact us at <strong>hello@mindfuldining.com</strong> or <strong>(555) 123-4567</strong></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/confirmation.js"></script>
+</body>
+</html>
