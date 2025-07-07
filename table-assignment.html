@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Table Assignment - Mindful Dining</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .assignment-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .assignment-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #8B4513;
+        }
+        
+        .table-card {
+            background: linear-gradient(135deg, #8B4513, #A0522D);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .table-number {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .companions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .companion-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 4px solid #8B4513;
+        }
+        
+        .personality-badge {
+            display: inline-block;
+            background: #8B4513;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        
+        .event-details {
+            background: #fff8dc;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 2rem 0;
+        }
+        
+        .loading-state {
+            text-align: center;
+            padding: 3rem;
+        }
+        
+        .error-state {
+            text-align: center;
+            padding: 3rem;
+            color: #dc3545;
+        }
+        
+        .success-icon {
+            font-size: 3rem;
+            color: #28a745;
+            margin-bottom: 1rem;
+        }
+        
+        .prep-tips {
+            background: #e8f5e8;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 2rem 0;
+        }
+        
+        @media (max-width: 768px) {
+            .assignment-container {
+                margin: 1rem;
+                padding: 1rem;
+            }
+            
+            .table-number {
+                font-size: 2rem;
+            }
+            
+            .companions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html">🍽️ Mindful Dining</a>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="reservation.html">Reserve</a>
+                <a href="#contact">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="assignment-container">
+            <!-- Loading State -->
+            <div id="loading-state" class="loading-state">
+                <div class="spinner"></div>
+                <h2>Loading Your Table Assignment...</h2>
+                <p>Please wait while we retrieve your dining details.</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-state" class="error-state" style="display: none;">
+                <h2>❌ Assignment Not Found</h2>
+                <p>We couldn't find your table assignment. This could be because:</p>
+                <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+                    <li>Your event is more than 24 hours away</li>
+                    <li>You haven't completed your personality test</li>
+                    <li>There was an issue with your reservation</li>
+                </ul>
+                <br>
+                <button onclick="window.location.href='reservation.html'" class="btn-primary">Make a Reservation</button>
+                <button onclick="window.location.href='personality-test.html'" class="btn-secondary">Take Personality Test</button>
+            </div>
+
+            <!-- Success State -->
+            <div id="assignment-content" style="display: none;">
+                <div class="assignment-header">
+                    <div class="success-icon">🎉</div>
+                    <h1>Your Table Assignment is Ready!</h1>
+                    <p>We've carefully matched you with compatible dining companions for an amazing evening.</p>
+                </div>
+
+                <!-- Event Details -->
+                <div class="event-details">
+                    <h3>📅 Event Details</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div>
+                            <strong>Date:</strong><br>
+                            <span id="event-date">Loading...</span>
+                        </div>
+                        <div>
+                            <strong>Time:</strong><br>
+                            <span id="event-time">Loading...</span>
+                        </div>
+                        <div>
+                            <strong>Location:</strong><br>
+                            <span id="event-location">The Mindful Dining Restaurant</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Assignment -->
+                <div class="table-card">
+                    <div class="table-number" id="table-number">Table 1</div>
+                    <p>Your assigned table for tonight's experience</p>
+                </div>
+
+                <!-- Dining Companions -->
+                <div>
+                    <h3>👥 Your Dining Companions</h3>
+                    <p>Based on your personality assessment, you'll be dining with these wonderful people:</p>
+                    <div class="companions-grid" id="companions-list">
+                        <!-- Companions will be loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Group Compatibility -->
+                <div style="text-align: center; margin: 2rem 0;">
+                    <h4>🤝 Group Compatibility</h4>
+                    <div style="background: #8B4513; color: white; padding: 1rem; border-radius: 10px; display: inline-block;">
+                        <span style="font-size: 2rem; font-weight: bold;" id="compatibility-score">95%</span><br>
+                        <small>Compatibility Match</small>
+                    </div>
+                </div>
+
+                <!-- Preparation Tips -->
+                <div class="prep-tips">
+                    <h4>💡 Tips for Tonight</h4>
+                    <ul>
+                        <li><strong>Arrive 15 minutes early</strong> for smooth check-in</li>
+                        <li><strong>Your table will be clearly marked</strong> with the table number above</li>
+                        <li><strong>Our host will help with introductions</strong> to break the ice</li>
+                        <li><strong>Bring an open mind</strong> and enjoy meaningful conversations</li>
+                        <li><strong>Ask thoughtful questions</strong> - your companions share similar values!</li>
+                    </ul>
+                </div>
+
+                <!-- Contact Information -->
+                <div style="text-align: center; padding: 2rem; background: #f8f9fa; border-radius: 10px;">
+                    <h4>Need Help?</h4>
+                    <p>Contact us at <strong>hello@mindfuldining.com</strong> or <strong>(555) 123-4567</strong></p>
+                    <p><small>Restaurant Address: 123 Mindful Street, Your City</small></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Simulate loading and display assignment data
+        window.addEventListener('DOMContentLoaded', function() {
+            // Get URL parameters to identify the user
+            const urlParams = new URLSearchParams(window.location.search);
+            const email = urlParams.get('email');
+            const reservationId = urlParams.get('id');
+            
+            // Simulate loading delay
+            setTimeout(() => {
+                loadTableAssignment(email, reservationId);
+            }, 1500);
+        });
+
+        function loadTableAssignment(email, reservationId) {
+            // In a real app, this would fetch from Firebase/database
+            // For demo purposes, we'll show sample data
+            
+            const loadingState = document.getElementById('loading-state');
+            const errorState = document.getElementById('error-state');
+            const assignmentContent = document.getElementById('assignment-content');
+            
+            // Demo data - replace with real Firebase query
+            const hasAssignment = email || reservationId; // Simple check
+            
+            if (hasAssignment) {
+                // Show assignment
+                loadingState.style.display = 'none';
+                assignmentContent.style.display = 'block';
+                
+                // Populate with demo data
+                populateDemoData();
+            } else {
+                // Show error
+                loadingState.style.display = 'none';
+                errorState.style.display = 'block';
+            }
+        }
+
+        function populateDemoData() {
+            // Event details
+            document.getElementById('event-date').textContent = 'Saturday, December 16, 2023';
+            document.getElementById('event-time').textContent = '7:30 PM';
+            
+            // Table assignment
+            document.getElementById('table-number').textContent = 'Table 3';
+            
+            // Sample dining companions
+            const companions = [
+                {
+                    name: 'Sarah Johnson',
+                    personality: 'Thoughtful Conversationalist',
+                    score: 78,
+                    interests: 'Philosophy, Books, Travel'
+                },
+                {
+                    name: 'Michael Chen',
+                    personality: 'Balanced Diner', 
+                    score: 72,
+                    interests: 'Art, Music, Cooking'
+                },
+                {
+                    name: 'Emma Davis',
+                    personality: 'Social Connector',
+                    score: 75,
+                    interests: 'Volunteering, Nature, Yoga'
+                }
+            ];
+            
+            const companionsList = document.getElementById('companions-list');
+            companionsList.innerHTML = companions.map(companion => `
+                <div class="companion-card">
+                    <h4>${companion.name}</h4>
+                    <div class="personality-badge">${companion.personality}</div>
+                    <p><strong>Compatibility Score:</strong> ${companion.score}/100</p>
+                    <p><strong>Interests:</strong> ${companion.interests}</p>
+                </div>
+            `).join('');
+            
+            // Group compatibility
+            const avgScore = Math.round(companions.reduce((sum, c) => sum + c.score, 0) / companions.length);
+            document.getElementById('compatibility-score').textContent = `${avgScore}%`;
+        }
+
+        // Add some loading animation
+        const style = document.createElement('style');
+        style.textContent = `
+            .spinner {
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid #8B4513;
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                animation: spin 1s linear infinite;
+                margin: 0 auto 1rem;
+            }
+            
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
