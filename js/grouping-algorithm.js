@@ -13,8 +13,8 @@ function createDiningGroups(users, options = {}) {
         minGroupSize: 2,
         maxGroupSize: 12,
         idealGroupSize: 6,
-        scoreThreshold: 15, // Maximum score difference within a group
-        diversityFactor: 0.3, // How much diversity to allow (0 = strict matching, 1 = random)
+        scoreThreshold: 10, // Maximum score difference within a group (STRICTER MATCHING)
+        diversityFactor: 0.2, // How much diversity to allow (0 = strict matching, 1 = random)
         ...options
     };
     
