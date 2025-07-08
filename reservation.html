@@ -88,27 +88,11 @@
         </div>
     </main>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-        import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
-        
-        // Your Firebase config (replace with your actual config)
-        const firebaseConfig = {
-            // Add your Firebase config here
-            apiKey: "your-api-key",
-            authDomain: "your-project.firebaseapp.com",
-            projectId: "your-project-id",
-            storageBucket: "your-project.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "your-app-id"
-        };
-        
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        window.db = db;
-        window.addDoc = addDoc;
-        window.collection = collection;
+    <!-- Firebase disabled for fast testing - using localStorage -->
+    <script>
+        console.log('🚀 Fast testing mode: Using localStorage for instant saves');
+        // Firebase intentionally not loaded for speed during testing
+        window.FAST_TESTING_MODE = true;
     </script>
     
     <script src="js/reservation.js"></script>

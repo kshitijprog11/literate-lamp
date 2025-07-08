@@ -33,10 +33,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Please fill in all required fields');
             }
             
-            // Demo Mode: Skip payment processing entirely
-            console.log('Demo Mode: Skipping payment - saving reservation...');
+            // Demo Mode: Instant processing
+            console.log('⚡ Demo Mode: Processing instantly...');
             
-            // Save reservation to Firebase (optimized)
+            // Instant save to localStorage 
             const reservationId = await saveReservation({
                 ...reservationData,
                 paymentId: 'demo_reservation_' + Date.now(),
@@ -47,13 +47,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 paymentStatus: 'demo_mode'
             });
             
-            console.log('✅ Reservation complete! Redirecting...');
+            console.log('🚀 Done! Redirecting immediately...');
             
-            // Store reservation ID for confirmation page
+            // Store data and redirect immediately
             sessionStorage.setItem('reservationId', reservationId);
             sessionStorage.setItem('reservationData', JSON.stringify(reservationData));
             
-            // Quick redirect to personality test
+            // Immediate redirect
             window.location.href = 'personality-test.html';
             
         } catch (error) {
@@ -98,40 +98,30 @@ function validateForm(data) {
 // Removed simulatePayment function - not needed for demo mode
 
 async function saveReservation(reservationData) {
-    try {
-        // Quick validation
-        if (!reservationData.email || !reservationData.firstName) {
-            throw new Error('Missing required reservation data');
-        }
-        
-        // Check if Firebase is available
-        if (typeof window.db === 'undefined') {
-            console.log('Firebase not configured, using localStorage (instant save)');
-            const reservationId = 'res_' + Date.now();
-            localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
-            return reservationId;
-        }
-        
-        // Save to Firebase with timeout
-        console.log('Saving to Firebase...');
-        const savePromise = window.addDoc(window.collection(window.db, 'reservations'), reservationData);
-        
-        // Add 5-second timeout for Firebase
-        const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Firebase save timeout')), 5000)
-        );
-        
-        const docRef = await Promise.race([savePromise, timeoutPromise]);
-        console.log('✅ Reservation saved to Firebase with ID:', docRef.id);
-        return docRef.id;
-        
-    } catch (error) {
-        console.warn('Firebase save failed, using localStorage fallback:', error.message);
-        
-        // Quick fallback to localStorage
+    // Quick validation
+    if (!reservationData.email || !reservationData.firstName) {
+        throw new Error('Missing required reservation data');
+    }
+    
+    // Fast testing mode: Always use localStorage for instant saves
+    if (window.FAST_TESTING_MODE || typeof window.db === 'undefined') {
+        console.log('⚡ Fast mode: Instant localStorage save');
         const reservationId = 'res_' + Date.now();
         localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
-        console.log('✅ Reservation saved to localStorage with ID:', reservationId);
+        console.log('✅ Reservation saved instantly with ID:', reservationId);
+        return reservationId;
+    }
+    
+    // This code path won't be reached in fast testing mode
+    try {
+        console.log('Saving to Firebase...');
+        const docRef = await window.addDoc(window.collection(window.db, 'reservations'), reservationData);
+        console.log('✅ Reservation saved to Firebase with ID:', docRef.id);
+        return docRef.id;
+    } catch (error) {
+        console.warn('Firebase failed, fallback to localStorage:', error.message);
+        const reservationId = 'res_' + Date.now();
+        localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
         return reservationId;
     }
 }
