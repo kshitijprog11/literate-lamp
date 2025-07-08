@@ -11,10 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Check if user has a reservation
         const reservationId = sessionStorage.getItem('reservationId');
         if (!reservationId) {
-            showNotification('Please complete your reservation first', 'error');
-            setTimeout(() => {
-                window.location.href = 'reservation.html';
-            }, 2000);
+            alert('Please complete your reservation first');
+            window.location.href = 'reservation.html';
             return;
         }
         
@@ -45,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateProgress();
                 updateNavigation();
             } else {
-                showNotification('Please select an answer before continuing', 'error');
+                alert('Please select an answer before continuing');
             }
         });
         
@@ -53,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (allQuestionsAnswered()) {
                 calculateAndShowResults();
             } else {
-                showNotification('Please answer all questions before submitting', 'error');
+                alert('Please answer all questions before submitting');
             }
         });
         
@@ -245,24 +243,39 @@ document.addEventListener('DOMContentLoaded', function() {
             const reservationId = sessionStorage.getItem('reservationId');
             const results = JSON.parse(sessionStorage.getItem('personalityResults'));
             
-            if (typeof window.db !== 'undefined') {
-                // Update reservation with personality results
+            if (!reservationId || !results) {
+                throw new Error('Missing reservation ID or results');
+            }
+            
+            // Fast testing mode: Always use localStorage
+            if (window.FAST_TESTING_MODE || typeof window.db === 'undefined' || typeof window.updateDoc === 'undefined') {
+                console.log('⚡ Fast mode: Saving personality results to localStorage');
+                const reservationData = JSON.parse(localStorage.getItem('reservation_' + reservationId) || '{}');
+                reservationData.personalityResults = results;
+                reservationData.updatedAt = new Date().toISOString();
+                localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
+                console.log('✅ Personality results saved successfully!');
+                return;
+            }
+            
+            // Firebase mode (when enabled)
+            try {
                 await window.updateDoc(window.doc(window.db, 'reservations', reservationId), {
                     personalityResults: results,
                     updatedAt: new Date().toISOString()
                 });
-                console.log('Personality results saved to Firebase');
-            } else {
-                // Fallback to localStorage
+                console.log('✅ Personality results saved to Firebase');
+            } catch (firebaseError) {
+                console.warn('Firebase save failed, using localStorage fallback');
                 const reservationData = JSON.parse(localStorage.getItem('reservation_' + reservationId) || '{}');
                 reservationData.personalityResults = results;
                 localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
-                console.log('Personality results saved to localStorage');
+                console.log('✅ Personality results saved to localStorage (fallback)');
             }
             
         } catch (error) {
             console.error('Error saving results:', error);
-            showNotification('Results saved locally', 'info');
+            alert('Error saving results: ' + error.message);
         }
     }
     
