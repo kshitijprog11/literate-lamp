@@ -6,7 +6,8 @@
     <title>Reservation - Mindful Dining</title>
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-    <script src="https://js.stripe.com/v3/"></script>
+    <!-- Stripe disabled for test mode -->
+    <!-- <script src="https://js.stripe.com/v3/"></script> -->
 </head>
 <body>
     <header class="page-header">
@@ -22,8 +23,8 @@
     <main class="reservation-main">
         <div class="container">
             <div class="reservation-form-container">
-                <h1>Make Your Reservation</h1>
-                <p class="form-description">Reserve your spot for an unforgettable dining experience. After booking, you'll take a quick personality test to be matched with compatible dining companions.</p>
+                <h1>🧪 Test Reservation (FREE)</h1>
+                <p class="form-description">Help test this new concept! This is a <strong>free test reservation</strong> - no real dining event will occur. After "booking", you'll take a personality test to see how the matching algorithm works. Perfect for trying out the system!</p>
                 
                 <form id="reservation-form" class="reservation-form">
                     <div class="form-section">
@@ -67,21 +68,17 @@
                         </div>
                     </div>
 
-                    <div class="form-section">
-                        <h3>Payment Information</h3>
+                    <div class="form-section" style="background: #e8f5e8; padding: 1.5rem; border-radius: 10px;">
+                        <h3>🧪 Test Mode - No Payment Required</h3>
                         <div class="pricing-info">
-                            <p><strong>Price per person: $75</strong></p>
-                            <p>Includes 4-course meal, beverages, and matching service</p>
+                            <p><strong>This is a FREE test reservation</strong></p>
+                            <p>Help test this concept! No payment needed.</p>
+                            <p><small>After booking, you'll take a quick personality test to see how the matching works.</small></p>
                         </div>
-                        
-                        <div id="card-element" class="stripe-element">
-                            <!-- Stripe Elements will create form elements here -->
-                        </div>
-                        <div id="card-errors" role="alert"></div>
                     </div>
 
                     <button type="submit" id="submit-button" class="submit-button">
-                        <span id="button-text">Complete Reservation - $75</span>
+                        <span id="button-text">🧪 Complete Test Reservation (FREE)</span>
                         <div id="spinner" class="spinner hidden"></div>
                     </button>
                 </form>

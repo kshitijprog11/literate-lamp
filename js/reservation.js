@@ -1,36 +1,17 @@
 // Reservation form functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Stripe
-    const stripe = Stripe('pk_test_51234567890abcdef...'); // Replace with your actual Stripe publishable key
-    const elements = stripe.elements();
+    // TEST MODE: Payment processing disabled for testing
+    console.log('🧪 TEST MODE: No payment required');
     
-    // Create card element
-    const cardElement = elements.create('card', {
-        style: {
-            base: {
-                fontSize: '16px',
-                color: '#424770',
-                '::placeholder': {
-                    color: '#aab7c4',
-                },
-            },
-            invalid: {
-                color: '#9e2146',
-            },
-        },
-    });
+    // Skip Stripe initialization for test mode
+    // const stripe = Stripe('pk_test_...');
+    // const elements = stripe.elements();
     
-    cardElement.mount('#card-element');
-    
-    // Handle card errors
-    cardElement.on('change', function(event) {
-        const displayError = document.getElementById('card-errors');
-        if (event.error) {
-            displayError.textContent = event.error.message;
-        } else {
-            displayError.textContent = '';
-        }
-    });
+    // Hide card element if it exists (for test mode)
+    const cardElement = document.getElementById('card-element');
+    if (cardElement) {
+        cardElement.style.display = 'none';
+    }
     
     // Set minimum date to today
     const eventDateInput = document.getElementById('eventDate');
@@ -62,20 +43,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Please fill in all required fields');
             }
             
-            // Create payment intent (in a real app, this would be done on your server)
-            // For this demo, we'll simulate a successful payment
-            const paymentResult = await simulatePayment(stripe, cardElement);
+            // TEST MODE: Skip payment processing entirely
+            console.log('🧪 Skipping payment for test mode');
             
-            if (paymentResult.error) {
-                throw new Error(paymentResult.error.message);
-            }
-            
-            // Save reservation to Firebase
+            // Save reservation to Firebase (no payment required)
             const reservationId = await saveReservation({
                 ...reservationData,
-                paymentId: paymentResult.paymentIntent.id,
+                paymentId: 'test_free_reservation_' + Date.now(),
                 createdAt: new Date().toISOString(),
-                status: 'confirmed'
+                status: 'confirmed',
+                testMode: true,
+                amount: 0
             });
             
             // Store reservation ID for confirmation page
@@ -92,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Re-enable submit button
             submitButton.disabled = false;
             spinner.classList.add('hidden');
-            buttonText.textContent = 'Complete Reservation - $75';
+            buttonText.textContent = '🧪 Complete Test Reservation (FREE)';
         }
     });
 });
