@@ -3,7 +3,7 @@
 
 const CONFIG = {
     // Firebase Configuration
-    // Get these from Firebase Console > Project Settings > General > Your apps
+    // PASTE YOUR REAL FIREBASE CONFIG HERE (replace this entire section)
     firebase: {
         apiKey: "your-firebase-api-key",
         authDomain: "your-project.firebaseapp.com",
