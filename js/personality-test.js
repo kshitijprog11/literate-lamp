@@ -26,39 +26,78 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function setupEventListeners() {
+        console.log('🔧 Setting up event listeners...');
+        
         // Navigation buttons
-        document.getElementById('prev-button').addEventListener('click', () => {
-            if (currentQuestionIndex > 0) {
-                currentQuestionIndex--;
-                showQuestion(currentQuestionIndex);
-                updateProgress();
-                updateNavigation();
-            }
-        });
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        const submitButton = document.getElementById('submit-test');
         
-        document.getElementById('next-button').addEventListener('click', () => {
-            if (isCurrentQuestionAnswered()) {
-                currentQuestionIndex++;
-                showQuestion(currentQuestionIndex);
-                updateProgress();
-                updateNavigation();
-            } else {
-                alert('Please select an answer before continuing');
-            }
-        });
+        if (prevButton) {
+            prevButton.addEventListener('click', () => {
+                if (currentQuestionIndex > 0) {
+                    currentQuestionIndex--;
+                    showQuestion(currentQuestionIndex);
+                    updateProgress();
+                    updateNavigation();
+                }
+            });
+        }
         
-        document.getElementById('submit-test').addEventListener('click', () => {
-            if (allQuestionsAnswered()) {
-                calculateAndShowResults();
-            } else {
-                alert('Please answer all questions before submitting');
-            }
-        });
+        if (nextButton) {
+            nextButton.addEventListener('click', () => {
+                if (isCurrentQuestionAnswered()) {
+                    currentQuestionIndex++;
+                    showQuestion(currentQuestionIndex);
+                    updateProgress();
+                    updateNavigation();
+                } else {
+                    alert('Please select an answer before continuing');
+                }
+            });
+        }
         
-        document.getElementById('save-results').addEventListener('click', async () => {
-            await saveResults();
-            window.location.href = 'confirmation.html';
-        });
+        if (submitButton) {
+            submitButton.addEventListener('click', () => {
+                if (allQuestionsAnswered()) {
+                    calculateAndShowResults();
+                    // Add save button listener after results are shown
+                    addSaveButtonListener();
+                } else {
+                    alert('Please answer all questions before submitting');
+                }
+            });
+        }
+        
+        console.log('✅ Basic event listeners setup complete');
+    }
+    
+    function addSaveButtonListener() {
+        console.log('🔧 Adding Save Results button listener...');
+        const saveButton = document.getElementById('save-results');
+        
+        if (saveButton) {
+            // Remove any existing listeners
+            const newSaveButton = saveButton.cloneNode(true);
+            saveButton.parentNode.replaceChild(newSaveButton, saveButton);
+            
+            // Add fresh listener
+            newSaveButton.addEventListener('click', async () => {
+                console.log('🔘 Save Results button clicked!');
+                try {
+                    await saveResults();
+                    console.log('✅ Results saved, redirecting to confirmation...');
+                    window.location.href = 'confirmation.html';
+                } catch (error) {
+                    console.error('❌ Error in Save Results button:', error);
+                    alert('Error saving results: ' + error.message);
+                }
+            });
+            
+            console.log('✅ Save Results button listener added');
+        } else {
+            console.error('❌ Save Results button not found!');
+        }
     }
     
     function showQuestion(index) {
