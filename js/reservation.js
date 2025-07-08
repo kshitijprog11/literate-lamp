@@ -1,38 +1,7 @@
 // Reservation form functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Stripe (Demo Mode)
-    const stripe = Stripe('pk_test_51234567890abcdef...'); // Replace with your actual Stripe publishable key
-    const elements = stripe.elements();
-    
-    console.log('Demo Mode: Payment processing is simulated only');
-    
-    // Create card element
-    const cardElement = elements.create('card', {
-        style: {
-            base: {
-                fontSize: '16px',
-                color: '#424770',
-                '::placeholder': {
-                    color: '#aab7c4',
-                },
-            },
-            invalid: {
-                color: '#9e2146',
-            },
-        },
-    });
-    
-    cardElement.mount('#card-element');
-    
-    // Handle card errors
-    cardElement.on('change', function(event) {
-        const displayError = document.getElementById('card-errors');
-        if (event.error) {
-            displayError.textContent = event.error.message;
-        } else {
-            displayError.textContent = '';
-        }
-    });
+    // Demo Mode: Skip Stripe initialization since no card input needed
+    console.log('Demo Mode: No credit card processing required for testing');
     
     // Set minimum date to today
     const eventDateInput = document.getElementById('eventDate');
@@ -64,21 +33,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Please fill in all required fields');
             }
             
-            // Create payment intent (Demo Mode - simulated only)
-            console.log('Demo Mode: Simulating payment processing');
-            const paymentResult = await simulatePayment(stripe, cardElement);
-            
-            if (paymentResult.error) {
-                throw new Error(paymentResult.error.message);
-            }
+            // Demo Mode: Skip payment processing entirely
+            console.log('Demo Mode: Skipping payment - no credit card required');
             
             // Save reservation to Firebase
             const reservationId = await saveReservation({
                 ...reservationData,
-                paymentId: paymentResult.paymentIntent.id,
+                paymentId: 'demo_reservation_' + Date.now(),
                 createdAt: new Date().toISOString(),
                 status: 'confirmed',
-                demoMode: true
+                demoMode: true,
+                amount: 75,
+                paymentStatus: 'demo_mode'
             });
             
             // Store reservation ID for confirmation page
