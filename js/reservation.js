@@ -34,9 +34,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Demo Mode: Skip payment processing entirely
-            console.log('Demo Mode: Skipping payment - no credit card required');
+            console.log('Demo Mode: Skipping payment - saving reservation...');
             
-            // Save reservation to Firebase
+            // Save reservation to Firebase (optimized)
             const reservationId = await saveReservation({
                 ...reservationData,
                 paymentId: 'demo_reservation_' + Date.now(),
@@ -47,16 +47,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 paymentStatus: 'demo_mode'
             });
             
+            console.log('✅ Reservation complete! Redirecting...');
+            
             // Store reservation ID for confirmation page
             sessionStorage.setItem('reservationId', reservationId);
             sessionStorage.setItem('reservationData', JSON.stringify(reservationData));
             
-            // Redirect to personality test
+            // Quick redirect to personality test
             window.location.href = 'personality-test.html';
             
         } catch (error) {
             console.error('Error processing reservation:', error);
-            showNotification(error.message, 'error');
+            alert('Error: ' + error.message); // Simple error display
             
             // Re-enable submit button
             submitButton.disabled = false;
@@ -93,53 +95,43 @@ function validateForm(data) {
     return true;
 }
 
-async function simulatePayment(stripe, cardElement) {
-    // In a real application, you would create a payment intent on your server
-    // and then confirm it here. For this demo, we'll simulate success.
-    
-    // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Check if card element has valid data
-    const {error, paymentMethod} = await stripe.createPaymentMethod({
-        type: 'card',
-        card: cardElement,
-    });
-    
-    if (error) {
-        return {error};
-    }
-    
-    // Simulate successful payment
-    return {
-        paymentIntent: {
-            id: 'pi_' + Math.random().toString(36).substr(2, 9),
-            status: 'succeeded'
-        }
-    };
-}
+// Removed simulatePayment function - not needed for demo mode
 
 async function saveReservation(reservationData) {
     try {
+        // Quick validation
+        if (!reservationData.email || !reservationData.firstName) {
+            throw new Error('Missing required reservation data');
+        }
+        
         // Check if Firebase is available
         if (typeof window.db === 'undefined') {
-            console.warn('Firebase not configured, saving to localStorage instead');
+            console.log('Firebase not configured, using localStorage (instant save)');
             const reservationId = 'res_' + Date.now();
             localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
             return reservationId;
         }
         
-        // Save to Firebase
-        const docRef = await window.addDoc(window.collection(window.db, 'reservations'), reservationData);
-        console.log('Reservation saved with ID:', docRef.id);
+        // Save to Firebase with timeout
+        console.log('Saving to Firebase...');
+        const savePromise = window.addDoc(window.collection(window.db, 'reservations'), reservationData);
+        
+        // Add 5-second timeout for Firebase
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Firebase save timeout')), 5000)
+        );
+        
+        const docRef = await Promise.race([savePromise, timeoutPromise]);
+        console.log('✅ Reservation saved to Firebase with ID:', docRef.id);
         return docRef.id;
         
     } catch (error) {
-        console.error('Error saving reservation:', error);
+        console.warn('Firebase save failed, using localStorage fallback:', error.message);
         
-        // Fallback to localStorage
+        // Quick fallback to localStorage
         const reservationId = 'res_' + Date.now();
         localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
+        console.log('✅ Reservation saved to localStorage with ID:', reservationId);
         return reservationId;
     }
 }
