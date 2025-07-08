@@ -218,91 +218,18 @@
         </div>
     </main>
 
+    <!-- Firebase Scripts (for real data connection) -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+    
+    <!-- Your Firebase Configuration -->
+    <script src="config.example.js"></script>
+    
+    <!-- Table Assignment Logic -->
+    <script src="js/table-assignment.js"></script>
+    
     <script>
-        // Simulate loading and display assignment data
-        window.addEventListener('DOMContentLoaded', function() {
-            // Get URL parameters to identify the user
-            const urlParams = new URLSearchParams(window.location.search);
-            const email = urlParams.get('email');
-            const reservationId = urlParams.get('id');
-            
-            // Simulate loading delay
-            setTimeout(() => {
-                loadTableAssignment(email, reservationId);
-            }, 1500);
-        });
-
-        function loadTableAssignment(email, reservationId) {
-            // In a real app, this would fetch from Firebase/database
-            // For demo purposes, we'll show sample data
-            
-            const loadingState = document.getElementById('loading-state');
-            const errorState = document.getElementById('error-state');
-            const assignmentContent = document.getElementById('assignment-content');
-            
-            // Demo data - replace with real Firebase query
-            const hasAssignment = email || reservationId; // Simple check
-            
-            if (hasAssignment) {
-                // Show assignment
-                loadingState.style.display = 'none';
-                assignmentContent.style.display = 'block';
-                
-                // Populate with demo data
-                populateDemoData();
-            } else {
-                // Show error
-                loadingState.style.display = 'none';
-                errorState.style.display = 'block';
-            }
-        }
-
-        function populateDemoData() {
-            // Event details
-            document.getElementById('event-date').textContent = 'Saturday, December 16, 2023';
-            document.getElementById('event-time').textContent = '7:30 PM';
-            
-            // Table assignment
-            document.getElementById('table-number').textContent = 'Table 3';
-            
-            // Sample dining companions
-            const companions = [
-                {
-                    name: 'Sarah Johnson',
-                    personality: 'Thoughtful Conversationalist',
-                    score: 78,
-                    interests: 'Philosophy, Books, Travel'
-                },
-                {
-                    name: 'Michael Chen',
-                    personality: 'Balanced Diner', 
-                    score: 72,
-                    interests: 'Art, Music, Cooking'
-                },
-                {
-                    name: 'Emma Davis',
-                    personality: 'Social Connector',
-                    score: 75,
-                    interests: 'Volunteering, Nature, Yoga'
-                }
-            ];
-            
-            const companionsList = document.getElementById('companions-list');
-            companionsList.innerHTML = companions.map(companion => `
-                <div class="companion-card">
-                    <h4>${companion.name}</h4>
-                    <div class="personality-badge">${companion.personality}</div>
-                    <p><strong>Compatibility Score:</strong> ${companion.score}/100</p>
-                    <p><strong>Interests:</strong> ${companion.interests}</p>
-                </div>
-            `).join('');
-            
-            // Group compatibility
-            const avgScore = Math.round(companions.reduce((sum, c) => sum + c.score, 0) / companions.length);
-            document.getElementById('compatibility-score').textContent = `${avgScore}%`;
-        }
-
-        // Add some loading animation
+        // Add loading animation styles
         const style = document.createElement('style');
         style.textContent = `
             .spinner {
