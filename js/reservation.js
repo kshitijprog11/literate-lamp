@@ -1,17 +1,38 @@
 // Reservation form functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // TEST MODE: Payment processing disabled for testing
-    console.log('🧪 TEST MODE: No payment required');
+    // Initialize Stripe (Demo Mode)
+    const stripe = Stripe('pk_test_51234567890abcdef...'); // Replace with your actual Stripe publishable key
+    const elements = stripe.elements();
     
-    // Skip Stripe initialization for test mode
-    // const stripe = Stripe('pk_test_...');
-    // const elements = stripe.elements();
+    console.log('Demo Mode: Payment processing is simulated only');
     
-    // Hide card element if it exists (for test mode)
-    const cardElement = document.getElementById('card-element');
-    if (cardElement) {
-        cardElement.style.display = 'none';
-    }
+    // Create card element
+    const cardElement = elements.create('card', {
+        style: {
+            base: {
+                fontSize: '16px',
+                color: '#424770',
+                '::placeholder': {
+                    color: '#aab7c4',
+                },
+            },
+            invalid: {
+                color: '#9e2146',
+            },
+        },
+    });
+    
+    cardElement.mount('#card-element');
+    
+    // Handle card errors
+    cardElement.on('change', function(event) {
+        const displayError = document.getElementById('card-errors');
+        if (event.error) {
+            displayError.textContent = event.error.message;
+        } else {
+            displayError.textContent = '';
+        }
+    });
     
     // Set minimum date to today
     const eventDateInput = document.getElementById('eventDate');
@@ -43,17 +64,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Please fill in all required fields');
             }
             
-            // TEST MODE: Skip payment processing entirely
-            console.log('🧪 Skipping payment for test mode');
+            // Create payment intent (Demo Mode - simulated only)
+            console.log('Demo Mode: Simulating payment processing');
+            const paymentResult = await simulatePayment(stripe, cardElement);
             
-            // Save reservation to Firebase (no payment required)
+            if (paymentResult.error) {
+                throw new Error(paymentResult.error.message);
+            }
+            
+            // Save reservation to Firebase
             const reservationId = await saveReservation({
                 ...reservationData,
-                paymentId: 'test_free_reservation_' + Date.now(),
+                paymentId: paymentResult.paymentIntent.id,
                 createdAt: new Date().toISOString(),
                 status: 'confirmed',
-                testMode: true,
-                amount: 0
+                demoMode: true
             });
             
             // Store reservation ID for confirmation page
@@ -70,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Re-enable submit button
             submitButton.disabled = false;
             spinner.classList.add('hidden');
-            buttonText.textContent = '🧪 Complete Test Reservation (FREE)';
+            buttonText.textContent = 'Complete Reservation - $75';
         }
     });
 });
