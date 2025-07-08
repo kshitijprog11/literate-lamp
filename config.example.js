@@ -3,14 +3,15 @@
 
 const CONFIG = {
     // Firebase Configuration
-    // PASTE YOUR REAL FIREBASE CONFIG HERE (replace this entire section)
+    // Real Firebase config from your mindful-dining-test project
     firebase: {
-        apiKey: "your-firebase-api-key",
-        authDomain: "your-project.firebaseapp.com",
-        projectId: "your-project-id",
-        storageBucket: "your-project.appspot.com", 
-        messagingSenderId: "123456789",
-        appId: "1:123456789:web:abcdef123456"
+        apiKey: "AIzaSyDCZ86Fvr0p0xSF2izG5Kk4UR27qJIQ_OY",
+        authDomain: "mindful-dining-test.firebaseapp.com",
+        projectId: "mindful-dining-test",
+        storageBucket: "mindful-dining-test.firebasestorage.app",
+        messagingSenderId: "756250419814",
+        appId: "1:756250419814:web:abdd3df98c9884114003a7",
+        measurementId: "G-V97Y6YE2X2"
     },
     
     // Stripe Configuration
