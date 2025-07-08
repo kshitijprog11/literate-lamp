@@ -361,35 +361,49 @@
         </div>
     </div>
     
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK with your real config -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
         import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
         
-        // Your Firebase config (replace with your actual config)
+        // Your real Firebase configuration
         const firebaseConfig = {
-            // Add your Firebase config here
-            apiKey: "your-api-key",
-            authDomain: "your-project.firebaseapp.com",
-            projectId: "your-project-id",
-            storageBucket: "your-project.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "your-app-id"
+            apiKey: "AIzaSyDCZ86Fvr0p0xSF2izG5Kk4UR27qJIQ_OY",
+            authDomain: "mindful-dining-test.firebaseapp.com",
+            projectId: "mindful-dining-test",
+            storageBucket: "mindful-dining-test.firebasestorage.app",
+            messagingSenderId: "756250419814",
+            appId: "1:756250419814:web:abdd3df98c9884114003a7",
+            measurementId: "G-V97Y6YE2X2"
         };
         
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        
-        // Make Firebase available globally
-        window.db = db;
-        window.getDocs = getDocs;
-        window.collection = collection;
-        window.doc = doc;
-        window.updateDoc = updateDoc;
-        window.addDoc = addDoc;
-        window.query = query;
-        window.where = where;
-        window.orderBy = orderBy;
+        try {
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            
+            // Make Firebase available globally
+            window.db = db;
+            window.getDocs = getDocs;
+            window.collection = collection;
+            window.doc = doc;
+            window.updateDoc = updateDoc;
+            window.addDoc = addDoc;
+            window.query = query;
+            window.where = where;
+            window.orderBy = orderBy;
+            
+            console.log('✅ Admin Dashboard connected to Firebase successfully');
+            
+            // Initialize dashboard after Firebase is ready
+            if (window.initializeDashboard) {
+                window.initializeDashboard();
+            }
+            
+        } catch (error) {
+            console.error('❌ Admin Dashboard Firebase connection failed:', error);
+            document.getElementById('recent-activity').innerHTML = 
+                '<div class="no-data">Firebase connection failed. Check console for details.</div>';
+        }
     </script>
     
     <script src="js/grouping-algorithm.js"></script>

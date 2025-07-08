@@ -3,8 +3,29 @@ let currentReservations = [];
 let currentGroups = [];
 
 document.addEventListener('DOMContentLoaded', function() {
-    loadDashboardData();
+    console.log('🔧 Admin Dashboard DOM loaded, waiting for Firebase...');
+    
+    // Try to initialize immediately if Firebase is ready
+    if (typeof window.db !== 'undefined') {
+        initializeDashboard();
+    } else {
+        // Wait for Firebase to be initialized
+        setTimeout(() => {
+            if (typeof window.db !== 'undefined') {
+                initializeDashboard();
+            } else {
+                console.log('⚠️ Firebase not available, using localStorage only');
+                initializeDashboard();
+            }
+        }, 2000);
+    }
 });
+
+// Make this function available globally so Firebase can call it
+window.initializeDashboard = function() {
+    console.log('🚀 Initializing Admin Dashboard...');
+    loadDashboardData();
+};
 
 // Navigation
 function showSection(sectionName) {
@@ -101,49 +122,72 @@ function loadRecentActivity() {
 
 // Reservations Section
 async function loadReservations() {
+    // Show loading state
+    if (document.getElementById('reservations-container')) {
+        document.getElementById('reservations-container').innerHTML = 
+            '<div class="loading">Loading reservations...</div>';
+    }
+    
     try {
+        console.log('🔄 Starting to load reservations...');
         const reservations = await getAllReservations();
         currentReservations = reservations;
+        console.log(`📋 Displaying ${reservations.length} reservations`);
         displayReservations(reservations);
     } catch (error) {
-        console.error('Error loading reservations:', error);
-        document.getElementById('reservations-container').innerHTML = 
-            '<div class="no-data">Error loading reservations</div>';
+        console.error('❌ Error loading reservations:', error);
+        if (document.getElementById('reservations-container')) {
+            document.getElementById('reservations-container').innerHTML = 
+                '<div class="no-data">Error loading reservations. Check console for details.</div>';
+        }
     }
 }
 
 async function getAllReservations() {
+    console.log('📊 Loading reservations...');
+    
     if (typeof window.db === 'undefined') {
-        // Fallback to localStorage for demo
+        console.log('⚠️ Firebase not available, using localStorage');
         return getLocalStorageReservations();
     }
     
     try {
+        console.log('🔥 Fetching reservations from Firebase...');
         const querySnapshot = await window.getDocs(window.collection(window.db, 'reservations'));
         const reservations = [];
+        
         querySnapshot.forEach((doc) => {
+            console.log('📄 Found reservation:', doc.id, doc.data());
             reservations.push({ id: doc.id, ...doc.data() });
         });
+        
+        console.log(`✅ Loaded ${reservations.length} reservations from Firebase`);
         return reservations;
+        
     } catch (error) {
-        console.error('Firebase error, falling back to localStorage:', error);
+        console.error('❌ Firebase error, falling back to localStorage:', error);
         return getLocalStorageReservations();
     }
 }
 
 function getLocalStorageReservations() {
+    console.log('💾 Checking localStorage for reservations...');
     const reservations = [];
+    
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key.startsWith('reservation_')) {
             try {
                 const data = JSON.parse(localStorage.getItem(key));
+                console.log('📄 Found localStorage reservation:', key, data);
                 reservations.push({ id: key.replace('reservation_', ''), ...data });
             } catch (error) {
-                console.error('Error parsing reservation:', key, error);
+                console.error('❌ Error parsing reservation:', key, error);
             }
         }
     }
+    
+    console.log(`📦 Found ${reservations.length} reservations in localStorage`);
     return reservations;
 }
 
