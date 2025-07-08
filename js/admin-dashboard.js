@@ -24,6 +24,14 @@ document.addEventListener('DOMContentLoaded', function() {
 // Make this function available globally so Firebase can call it
 window.initializeDashboard = function() {
     console.log('🚀 Initializing Admin Dashboard...');
+    
+    // Check if grouping algorithm is loaded
+    if (typeof window.GroupingAlgorithm !== 'undefined') {
+        console.log('✅ Grouping algorithm is available');
+    } else {
+        console.warn('⚠️ Grouping algorithm not yet loaded');
+    }
+    
     loadDashboardData();
 };
 
@@ -266,12 +274,24 @@ function exportReservations() {
 
 // Grouping Section
 function loadReservationsForGrouping() {
+    console.log('📅 Loading reservations for grouping...');
+    
     const selectedDate = document.getElementById('grouping-date').value;
-    if (!selectedDate) return;
+    console.log('Selected date:', selectedDate);
+    
+    if (!selectedDate) {
+        console.log('No date selected');
+        return;
+    }
+    
+    console.log(`Total current reservations: ${currentReservations.length}`);
     
     const reservationsForDate = currentReservations.filter(r => 
         r.eventDate === selectedDate && r.personalityResults
     );
+    
+    console.log(`Reservations for ${selectedDate}: ${currentReservations.filter(r => r.eventDate === selectedDate).length}`);
+    console.log(`With personality tests: ${reservationsForDate.length}`);
     
     const container = document.getElementById('grouping-preview');
     
@@ -279,8 +299,11 @@ function loadReservationsForGrouping() {
         container.innerHTML = '<div class="no-data">No reservations with completed personality tests for this date</div>';
         document.getElementById('create-groups-btn').disabled = true;
         document.getElementById('preview-groups-btn').disabled = true;
+        console.log('❌ No reservations available for grouping');
         return;
     }
+    
+    console.log('✅ Found reservations for grouping:', reservationsForDate);
     
     container.innerHTML = `
         <h4>Available for Grouping (${reservationsForDate.length} people):</h4>
@@ -296,13 +319,27 @@ function loadReservationsForGrouping() {
     
     document.getElementById('create-groups-btn').disabled = false;
     document.getElementById('preview-groups-btn').disabled = false;
+    console.log('✅ Grouping buttons enabled');
 }
 
 function previewGroups() {
-    const groups = generateGroupsForDate();
-    if (!groups) return;
+    console.log('🔄 Preview Groups button clicked');
     
-    displayGroupsPreview(groups);
+    try {
+        const groups = generateGroupsForDate();
+        
+        if (!groups) {
+            console.log('❌ No groups generated');
+            return;
+        }
+        
+        console.log(`✅ Generated ${groups.length} groups for preview`);
+        displayGroupsPreview(groups);
+        
+    } catch (error) {
+        console.error('❌ Error previewing groups:', error);
+        alert('Error previewing groups: ' + error.message);
+    }
 }
 
 function createGroups() {
@@ -318,15 +355,24 @@ function createGroups() {
 }
 
 function generateGroupsForDate() {
+    console.log('🔧 Generating groups for date...');
+    
     const selectedDate = document.getElementById('grouping-date').value;
+    console.log('📅 Selected date:', selectedDate);
+    
     if (!selectedDate) {
         alert('Please select a date');
         return null;
     }
     
+    console.log(`📊 Total reservations available: ${currentReservations.length}`);
+    
     const reservationsForDate = currentReservations.filter(r => 
         r.eventDate === selectedDate && r.personalityResults
     );
+    
+    console.log(`🎯 Reservations for ${selectedDate} with personality tests: ${reservationsForDate.length}`);
+    console.log('👥 People to group:', reservationsForDate.map(r => `${r.firstName} ${r.lastName} (${r.personalityResults?.score})`));
     
     if (reservationsForDate.length === 0) {
         alert('No reservations with personality tests for this date');
@@ -339,7 +385,33 @@ function generateGroupsForDate() {
         scoreThreshold: parseInt(document.getElementById('score-threshold').value)
     };
     
-    return window.GroupingAlgorithm.createDiningGroups(reservationsForDate, options);
+    console.log('⚙️ Grouping options:', options);
+    
+    // Check if grouping algorithm is available
+    if (typeof window.GroupingAlgorithm === 'undefined') {
+        console.error('❌ GroupingAlgorithm not found on window object');
+        console.log('🔄 Available window objects:', Object.keys(window).filter(key => key.includes('Group') || key.includes('Algorithm')));
+        alert('Grouping algorithm not loaded. Please refresh the page and try again.');
+        return null;
+    }
+    
+    if (typeof window.GroupingAlgorithm.createDiningGroups !== 'function') {
+        console.error('❌ createDiningGroups function not found');
+        console.log('Available GroupingAlgorithm methods:', Object.keys(window.GroupingAlgorithm));
+        alert('Grouping function not available. Please refresh the page and try again.');
+        return null;
+    }
+    
+    console.log('🔥 Calling grouping algorithm...');
+    try {
+        const groups = window.GroupingAlgorithm.createDiningGroups(reservationsForDate, options);
+        console.log(`✅ Algorithm returned ${groups ? groups.length : 0} groups`);
+        return groups;
+    } catch (error) {
+        console.error('❌ Grouping algorithm error:', error);
+        alert('Error in grouping algorithm: ' + error.message);
+        return null;
+    }
 }
 
 function displayGroupsPreview(groups) {
@@ -524,3 +596,23 @@ function exportEmailList() {
     const csv = convertToCSV(emails, ['email', 'name']);
     downloadCSV(csv, 'email-list.csv');
 }
+
+// Debug function for testing grouping
+window.testGrouping = function() {
+    console.log('🧪 Testing grouping functionality...');
+    console.log('Current reservations:', currentReservations.length);
+    console.log('GroupingAlgorithm available:', typeof window.GroupingAlgorithm !== 'undefined');
+    
+    if (typeof window.GroupingAlgorithm !== 'undefined') {
+        console.log('GroupingAlgorithm methods:', Object.keys(window.GroupingAlgorithm));
+    }
+    
+    // Try to generate test groups
+    const testDate = document.getElementById('grouping-date').value;
+    if (testDate) {
+        loadReservationsForGrouping();
+        console.log('🎯 Test grouping for date:', testDate);
+    } else {
+        console.log('❌ No date selected for testing');
+    }
+};
