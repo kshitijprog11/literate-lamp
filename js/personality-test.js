@@ -286,30 +286,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Missing reservation ID or results');
             }
             
-            // Fast testing mode: Always use localStorage
+            // Try Firebase first (for real data sharing), then localStorage fallback
             if (window.FAST_TESTING_MODE || typeof window.db === 'undefined' || typeof window.updateDoc === 'undefined') {
-                console.log('⚡ Fast mode: Saving personality results to localStorage');
+                console.log('⚡ Fallback mode: Saving personality results to localStorage');
                 const reservationData = JSON.parse(localStorage.getItem('reservation_' + reservationId) || '{}');
                 reservationData.personalityResults = results;
                 reservationData.updatedAt = new Date().toISOString();
                 localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
-                console.log('✅ Personality results saved successfully!');
+                console.log('✅ Personality results saved locally');
+                console.log('⚠️ Note: This data won\'t be available for grouping with others');
                 return;
             }
             
-            // Firebase mode (when enabled)
+            // Firebase mode (for real compatibility matching)
             try {
-                await window.updateDoc(window.doc(window.db, 'reservations', reservationId), {
+                console.log('🔥 Saving personality results to Firebase for compatibility matching...');
+                
+                // Add 3-second timeout for Firebase
+                const updatePromise = window.updateDoc(window.doc(window.db, 'reservations', reservationId), {
                     personalityResults: results,
                     updatedAt: new Date().toISOString()
                 });
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Firebase timeout')), 3000)
+                );
+                
+                await Promise.race([updatePromise, timeoutPromise]);
                 console.log('✅ Personality results saved to Firebase');
+                console.log('🎯 Data is now available for compatibility matching!');
+                
             } catch (firebaseError) {
-                console.warn('Firebase save failed, using localStorage fallback');
+                console.warn('⚠️ Firebase save failed, using localStorage fallback:', firebaseError.message);
                 const reservationData = JSON.parse(localStorage.getItem('reservation_' + reservationId) || '{}');
                 reservationData.personalityResults = results;
+                reservationData.updatedAt = new Date().toISOString();
                 localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
-                console.log('✅ Personality results saved to localStorage (fallback)');
+                console.log('✅ Personality results saved locally (fallback)');
+                console.log('⚠️ Note: This data won\'t be available for grouping with others');
             }
             
         } catch (error) {

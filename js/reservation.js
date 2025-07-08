@@ -103,25 +103,35 @@ async function saveReservation(reservationData) {
         throw new Error('Missing required reservation data');
     }
     
-    // Fast testing mode: Always use localStorage for instant saves
+    // Try Firebase first (for real data sharing), then localStorage fallback
     if (window.FAST_TESTING_MODE || typeof window.db === 'undefined') {
-        console.log('⚡ Fast mode: Instant localStorage save');
+        console.log('⚡ Fallback mode: Using localStorage');
         const reservationId = 'res_' + Date.now();
         localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
-        console.log('✅ Reservation saved instantly with ID:', reservationId);
+        console.log('✅ Reservation saved locally with ID:', reservationId);
         return reservationId;
     }
     
-    // This code path won't be reached in fast testing mode
     try {
-        console.log('Saving to Firebase...');
-        const docRef = await window.addDoc(window.collection(window.db, 'reservations'), reservationData);
+        console.log('🔥 Saving to Firebase for real data sharing...');
+        
+        // Add 3-second timeout for Firebase
+        const savePromise = window.addDoc(window.collection(window.db, 'reservations'), reservationData);
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Firebase timeout')), 3000)
+        );
+        
+        const docRef = await Promise.race([savePromise, timeoutPromise]);
         console.log('✅ Reservation saved to Firebase with ID:', docRef.id);
+        console.log('🎯 Data will be available for admin dashboard and grouping!');
         return docRef.id;
+        
     } catch (error) {
-        console.warn('Firebase failed, fallback to localStorage:', error.message);
+        console.warn('⚠️ Firebase failed, using localStorage fallback:', error.message);
         const reservationId = 'res_' + Date.now();
         localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
+        console.log('✅ Reservation saved locally with ID:', reservationId);
+        console.log('⚠️ Note: This data won\'t be available for grouping with others');
         return reservationId;
     }
 }

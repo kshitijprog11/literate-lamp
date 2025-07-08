@@ -88,11 +88,33 @@
         </div>
     </main>
 
-    <!-- Firebase disabled for fast testing - using localStorage -->
-    <script>
-        console.log('🚀 Fast testing mode: Using localStorage for instant saves');
-        // Firebase intentionally not loaded for speed during testing
-        window.FAST_TESTING_MODE = true;
+    <!-- Firebase SDK with your real config -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+        
+        // Your real Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDCZ86Fvr0p0xSF2izG5Kk4UR27qJIQ_OY",
+            authDomain: "mindful-dining-test.firebaseapp.com",
+            projectId: "mindful-dining-test",
+            storageBucket: "mindful-dining-test.firebasestorage.app",
+            messagingSenderId: "756250419814",
+            appId: "1:756250419814:web:abdd3df98c9884114003a7",
+            measurementId: "G-V97Y6YE2X2"
+        };
+        
+        try {
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            window.db = db;
+            window.addDoc = addDoc;
+            window.collection = collection;
+            console.log('✅ Firebase connected successfully for real data sharing');
+        } catch (error) {
+            console.warn('Firebase connection failed, using localStorage fallback:', error);
+            window.FAST_TESTING_MODE = true;
+        }
     </script>
     
     <script src="js/reservation.js"></script>
