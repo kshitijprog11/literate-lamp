@@ -5,7 +5,7 @@ const CONFIG = {
     // Firebase Configuration
     // Real Firebase config from your mindful-dining-test project
     firebase: {
-        apiKey: "AIzaSyDCZ86Fvr0p0xSF2izG5Kk4UR27qJIQ_OY",
+        apiKey: "YOUR_GOOGLE_API_KEY_HERE",
         authDomain: "mindful-dining-test.firebaseapp.com",
         projectId: "mindful-dining-test",
         storageBucket: "mindful-dining-test.firebasestorage.app",
