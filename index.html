@@ -6,163 +6,78 @@
     <title>Mindful Dining - Connect Through Food</title>
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        .hero-section {
-            background: linear-gradient(rgba(139, 69, 19, 0.8), rgba(160, 82, 45, 0.8)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600"><rect fill="%23f4f4f4" width="1000" height="600"/><text x="500" y="300" text-anchor="middle" font-size="40" fill="%23888">Restaurant Background</text></svg>');
-            background-size: cover;
-            background-position: center;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: white;
-        }
-        
-        .hero-content h1 {
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
-            font-family: 'Playfair Display', serif;
-        }
-        
-        .hero-content p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            max-width: 600px;
-        }
-        
-        .cta-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .cta-button {
-            background: #4CAF50;
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 5px;
-            font-size: 1.1rem;
-            text-decoration: none;
-            transition: background 0.3s;
-            display: inline-block;
-        }
-        
-        .cta-button:hover {
-            background: #45a049;
-        }
-        
-        .cta-button.secondary {
-            background: transparent;
-            border: 2px solid white;
-        }
-        
-        .cta-button.secondary:hover {
-            background: white;
-            color: #8B4513;
-        }
-        
-        .features-section {
-            padding: 80px 20px;
-            background: #f9f9f9;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-            margin-top: 40px;
-        }
-        
-        .feature-card {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        
-        .feature-card h3 {
-            color: #8B4513;
-            margin-bottom: 15px;
-        }
-    </style>
 </head>
 <body>
-    <div class="hero-section">
-        <div class="hero-content">
-            <h1>Connect Through Food</h1>
-            <p>Join like-minded people for an unforgettable dining experience. Take our personality test and get matched with your perfect dining companions.</p>
-            <div class="cta-buttons">
-                <a href="reservation.html" class="cta-button">Make a Reservation</a>
-                <a href="personality-test.html" class="cta-button secondary">Take Personality Test</a>
+    <header class="hero-section">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>Mindful Dining</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
             </div>
+        </nav>
+        
+        <div class="hero-content">
+            <h1 class="hero-title">Connect Through Food</h1>
+            <p class="hero-subtitle">Join like-minded people for an unforgettable dining experience. Take our personality test and get matched with your perfect dining companions.</p>
+            <button class="cta-button" onclick="location.href='reservation.html'">Make a Reservation</button>
         </div>
-    </div>
+    </header>
 
-    <section class="features-section">
+    <section id="about" class="about-section">
         <div class="container">
-            <h2 style="text-align: center; color: #8B4513; margin-bottom: 20px;">How It Works</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <h3>🍽️ Make a Reservation</h3>
-                    <p>Book your table for a unique dining experience. Choose your preferred date, time, and party size.</p>
-                    <a href="reservation.html" class="cta-button">Book Now</a>
+            <h2>About Mindful Dining</h2>
+            <p>We believe that the best conversations happen over great food. Our unique dining experience combines exceptional cuisine with carefully curated social connections. Through our personality assessment, we match you with fellow diners who share your interests, communication style, and dining preferences.</p>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="how-it-works-section">
+        <div class="container">
+            <h2>How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Reserve Your Spot</h3>
+                    <p>Choose your preferred date and complete your reservation with secure payment.</p>
                 </div>
-                
-                <div class="feature-card">
-                    <h3>🧠 Personality Assessment</h3>
-                    <p>Take our 15-question personality test to help us match you with compatible dining companions.</p>
-                    <a href="personality-test.html" class="cta-button">Take Test</a>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Take the Personality Test</h3>
+                    <p>Complete our brief personality assessment to help us understand your dining style.</p>
                 </div>
-                
-                <div class="feature-card">
-                    <h3>👥 Smart Matching</h3>
-                    <p>Our algorithm groups guests with similar personalities and interests for engaging conversations.</p>
-                    <a href="table-assignment.html" class="cta-button">View Assignments</a>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Get Matched</h3>
+                    <p>We'll group you with 2-12 compatible diners for the perfect evening.</p>
                 </div>
-                
-                <div class="feature-card">
-                    <h3>✅ Confirmation</h3>
-                    <p>Receive confirmation of your reservation and table assignment details.</p>
-                    <a href="confirmation.html" class="cta-button">Check Status</a>
-                </div>
-                
-                <div class="feature-card">
-                    <h3>⚙️ Admin Dashboard</h3>
-                    <p>Restaurant staff can manage reservations, create groups, and view analytics.</p>
-                    <a href="admin-dashboard.html" class="cta-button">Admin Access</a>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Enjoy Your Experience</h3>
+                    <p>Meet your table companions and enjoy an evening of great food and conversation.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <footer style="background: #8B4513; color: white; text-align: center; padding: 40px 20px;">
-        <h3>Mindful Dining</h3>
-        <p>Creating meaningful connections through exceptional dining experiences.</p>
-        <p>&copy; 2024 Mindful Dining. All rights reserved.</p>
+    <section id="contact" class="contact-section">
+        <div class="container">
+            <h2>Contact Us</h2>
+            <p>Questions? We'd love to hear from you.</p>
+            <p>Email: hello@mindfuldining.com | Phone: (555) 123-4567</p>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Mindful Dining. All rights reserved.</p>
+        </div>
     </footer>
 
-    <script>
-        // Simple page functionality
-        console.log('Mindful Dining - Landing Page Loaded Successfully');
-        
-        // Add smooth scrolling
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-    </script>
+    <script src="js/main.js"></script>
 </body>
 </html>
