@@ -976,25 +976,49 @@ footer p {
 /* ============================================
    Responsive Design - Mobile First
    ============================================ */
+
+/* Tablet screens (max-width: 768px) */
 @media (max-width: 768px) {
   :root {
     --navbar-height: 68px;
+    --font-size-5xl: 2.5rem;
+    --font-size-4xl: 2rem;
+    --font-size-3xl: 1.75rem;
+  }
+  
+  .nav-container {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  .hero-section {
+    padding: var(--spacing-3xl) var(--spacing-lg);
+    padding-top: calc(var(--navbar-height) + var(--spacing-3xl));
+    min-height: 100vh;
   }
   
   .hero-title {
     font-size: var(--font-size-4xl);
+    line-height: 1.2;
+    margin-bottom: var(--spacing-md);
   }
   
   .hero-subtitle {
     font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    margin-bottom: var(--spacing-xl);
   }
   
   .nav-menu {
-    display: none;
+    gap: var(--spacing-lg);
   }
   
   .steps {
     grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+  
+  .step {
+    padding: var(--spacing-xl);
   }
   
   .reservation-form-container,
@@ -1015,14 +1039,17 @@ footer p {
   
   .test-navigation {
     flex-direction: column;
+    gap: var(--spacing-md);
   }
   
   .nav-button {
     max-width: none;
+    width: 100%;
   }
   
   .action-buttons {
     flex-direction: column;
+    gap: var(--spacing-md);
   }
   
   .button {
@@ -1037,6 +1064,290 @@ footer p {
   .how-it-works-section,
   .contact-section {
     padding: var(--spacing-3xl) 0;
+  }
+  
+  .about-section p {
+    font-size: var(--font-size-base);
+  }
+  
+  .contact-section p {
+    font-size: var(--font-size-base);
+  }
+}
+
+/* Mobile phones (max-width: 480px) */
+@media (max-width: 480px) {
+  :root {
+    --navbar-height: 64px;
+    --font-size-5xl: 2rem;
+    --font-size-4xl: 1.75rem;
+    --font-size-3xl: 1.5rem;
+    --font-size-2xl: 1.375rem;
+    --font-size-xl: 1.125rem;
+    --font-size-lg: 1rem;
+    --spacing-4xl: 3rem;
+    --spacing-3xl: 2.5rem;
+    --spacing-2xl: 2rem;
+  }
+  
+  .container {
+    padding: 0 var(--spacing-md);
+  }
+  
+  .nav-container {
+    padding: 0 var(--spacing-md);
+    height: var(--navbar-height);
+  }
+  
+  .logo h1 {
+    font-size: var(--font-size-xl);
+  }
+  
+  .nav-menu {
+    display: none;
+  }
+  
+  .hero-section {
+    padding: var(--spacing-2xl) var(--spacing-md);
+    padding-top: calc(var(--navbar-height) + var(--spacing-2xl));
+    min-height: 90vh;
+  }
+  
+  .hero-title {
+    font-size: var(--font-size-3xl);
+    line-height: 1.2;
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .hero-subtitle {
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .cta-button,
+  .submit-button,
+  .button.primary {
+    padding: var(--spacing-md) var(--spacing-xl);
+    font-size: var(--font-size-base);
+    min-height: 48px;
+    width: 100%;
+  }
+  
+  .about-section,
+  .how-it-works-section,
+  .contact-section {
+    padding: var(--spacing-2xl) 0;
+  }
+  
+  .about-section h2,
+  .how-it-works-section h2,
+  .contact-section h2 {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .about-section p {
+    font-size: var(--font-size-sm);
+    line-height: 1.7;
+  }
+  
+  .steps {
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-xl);
+  }
+  
+  .step {
+    padding: var(--spacing-lg);
+  }
+  
+  .step h3 {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .step p {
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+  }
+  
+  .step-number {
+    width: 56px;
+    height: 56px;
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .contact-section p {
+    font-size: var(--font-size-sm);
+  }
+  
+  /* Form adjustments for mobile */
+  .reservation-form-container,
+  .test-container,
+  .confirmation-container {
+    margin: 0 var(--spacing-md);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+  }
+  
+  .reservation-form-container h1,
+  .confirmation-container h1 {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .form-description {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .form-section {
+    margin-bottom: var(--spacing-xl);
+  }
+  
+  .form-section h3 {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .form-group {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .form-group label {
+    font-size: var(--font-size-xs);
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: var(--spacing-md);
+    font-size: var(--font-size-base);
+    min-height: 48px;
+  }
+  
+  /* Test page mobile */
+  .test-header {
+    padding: var(--spacing-lg);
+  }
+  
+  .test-header h1 {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .test-header p {
+    font-size: var(--font-size-sm);
+  }
+  
+  .progress-text {
+    font-size: var(--font-size-xs);
+  }
+  
+  .test-content {
+    padding: var(--spacing-lg);
+  }
+  
+  .question h3 {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-md);
+    line-height: 1.4;
+  }
+  
+  .option {
+    padding: var(--spacing-md);
+    font-size: var(--font-size-sm);
+    min-height: 52px;
+  }
+  
+  .test-navigation {
+    gap: var(--spacing-sm);
+  }
+  
+  .nav-button {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: var(--font-size-sm);
+    min-height: 48px;
+  }
+  
+  /* Confirmation page mobile */
+  .success-icon svg {
+    width: 64px;
+    height: 64px;
+  }
+  
+  .confirmation-message {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .reservation-details,
+  .pricing-info {
+    padding: var(--spacing-md);
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+  
+  .detail-label,
+  .detail-value {
+    font-size: var(--font-size-xs);
+  }
+  
+  .next-steps h3 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .step-item {
+    gap: var(--spacing-md);
+  }
+  
+  .step-item .step-number {
+    width: 32px;
+    height: 32px;
+    font-size: var(--font-size-sm);
+  }
+  
+  .step-content h4 {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .step-content p {
+    font-size: var(--font-size-xs);
+  }
+  
+  .action-buttons {
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .button {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: var(--font-size-sm);
+    min-height: 48px;
+  }
+  
+  .contact-info {
+    padding: var(--spacing-md);
+  }
+  
+  .contact-info p {
+    font-size: var(--font-size-xs);
+  }
+  
+  footer {
+    padding: var(--spacing-xl) 0;
+  }
+  
+  footer p {
+    font-size: var(--font-size-xs);
   }
 }
 
