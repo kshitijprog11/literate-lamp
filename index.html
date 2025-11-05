@@ -3,198 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Literate Lamp — Illuminating Stories with Design</title>
-    <meta name="description" content="Literate Lamp crafts narrative lighting with theme-aware ambiance. Explore elegant, anime, and Stranger Things-inspired styles with instant theme switching.">
+    <title>Mindful Dining - Connect Through Food</title>
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <script defer src="js/theme.js"></script>
-    <script defer src="js/main.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
-<body class="theme-default" data-page="home">
-    <a class="skip-link" href="#main">Skip to content</a>
-
-    <header class="site-header" data-theme-container>
-        <nav class="site-nav container" aria-label="Primary">
-            <div class="site-brand">
-                <span class="site-brand__name">Literate Lamp</span>
-                <span class="site-brand__tagline">Atmosphere in three acts</span>
-            </div>
-
-            <ul class="nav-menu" role="list">
-                <li><a href="#story">Story</a></li>
-                <li><a href="#collections">Collections</a></li>
-                <li><a href="#experience">Experience</a></li>
-                <li><a href="#assets">Asset Kit</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-
-            <div class="utility-actions">
-                <label class="theme-switcher" id="theme-switcher">
-                    <span class="theme-switcher__label">Theme</span>
-                    <select name="theme" aria-label="Select a theme for Literate Lamp">
-                        <option value="theme-default">Default</option>
-                        <option value="theme-anime">Anime Fan</option>
-                        <option value="theme-stranger">Stranger Things Fan</option>
-                    </select>
-                    <svg class="theme-switcher__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-                        <path fill="currentColor" d="M7 10l5 5 5-5H7z"/>
-                    </svg>
-                </label>
-                <a class="nav-cta" href="#contact">Book a lighting consult</a>
+<body>
+    <header class="hero-section">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>Mindful Dining</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
             </div>
         </nav>
+        
+        <div class="hero-content">
+            <h1 class="hero-title">Connect Through Food</h1>
+            <p class="hero-subtitle">Join like-minded people for an unforgettable dining experience. Take our personality test and get matched with your perfect dining companions.</p>
+            <button class="cta-button" onclick="location.href='reservation.html'">Make a Reservation</button>
+        </div>
     </header>
 
-    <main id="main">
-        <section class="hero" id="story">
-            <div class="container hero__grid">
-                <div class="hero__content">
-                    <div class="hero__meta">
-                        <span class="tag-chip">Signature collection · 2025</span>
-                        <span class="tag-chip">Theme aware lighting</span>
-                    </div>
-                    <h1 class="hero__title">Light that reads the room.</h1>
-                    <p class="hero__lead">Literate Lamp combines artisan fixtures with intelligent storytelling cues so every space feels like the next chapter. Switch themes to reveal how mood, colour, and micro-interactions transform the glow.</p>
-                    <div class="hero__actions">
-                        <a class="button button--primary" href="#collections">Explore collections</a>
-                        <a class="button button--ghost" href="#assets">Download asset kit</a>
-                    </div>
+    <section id="about" class="about-section">
+        <div class="container">
+            <h2>About Mindful Dining</h2>
+            <p>We believe that the best conversations happen over great food. Our unique dining experience combines exceptional cuisine with carefully curated social connections. Through our personality assessment, we match you with fellow diners who share your interests, communication style, and dining preferences.</p>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="how-it-works-section">
+        <div class="container">
+            <h2>How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Reserve Your Spot</h3>
+                    <p>Choose your preferred date and complete your reservation with secure payment.</p>
                 </div>
-
-                <div class="hero__media" aria-hidden="true">
-                    <article class="hero-card">
-                        <h3>Scene presets</h3>
-                        <p>Calibrate ambience with narrative presets inspired by literary salons, city pop lounges, and Hawkins High hallways.</p>
-                    </article>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Take the Personality Test</h3>
+                    <p>Complete our brief personality assessment to help us understand your dining style.</p>
                 </div>
-            </div>
-        </section>
-
-        <section class="section" id="collections">
-            <div class="container">
-                <div class="section__heading">
-                    <span class="section__eyebrow">Collections</span>
-                    <h2 class="section__title">Three universes, one lamp engine</h2>
-                    <p class="section__lead">Every theme reuses the same layout system and CSS variables. Colour, typography, textures, and motion respond instantly to match your audience.</p>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Get Matched</h3>
+                    <p>We'll group you with 2-12 compatible diners for the perfect evening.</p>
                 </div>
-
-                <div class="feature-grid">
-                    <article class="feature-card">
-                        <span class="feature-card__icon" aria-hidden="true">✶</span>
-                        <h3>Default · Editorial elegance</h3>
-                        <p>Muted parchment tones, high-legibility pairings, and brass-inspired highlights keep focus on longform reading or intimate gatherings.</p>
-                    </article>
-
-                    <article class="feature-card">
-                        <span class="feature-card__icon" aria-hidden="true">◇</span>
-                        <h3>Anime fan · Playful vibrance</h3>
-                        <p>Soft gradients, rounded typesetting, and glow-on-hover accents channel the optimism of slice-of-life intros and café scenes.</p>
-                    </article>
-
-                    <article class="feature-card">
-                        <span class="feature-card__icon" aria-hidden="true">✦</span>
-                        <h3>Stranger Things fan · Neon noir</h3>
-                        <p>Retro synth palettes, neon pulses, and grain overlays create a moody 80s after-hours vibe without sacrificing readability.</p>
-                    </article>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Enjoy Your Experience</h3>
+                    <p>Meet your table companions and enjoy an evening of great food and conversation.</p>
                 </div>
-
-                <div class="highlight-banner" role="note">
-                    <strong>Tip:</strong>
-                    <span>Declare new themes by extending <code>body.theme-name</code> and overriding the shared variable set — layout stays untouched.</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="section grid-lines" id="experience">
-            <div class="container layout-split">
-                <figure class="layout-split__media" aria-hidden="true">
-                    <img src="https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=900&q=60" alt="Softly lit reading nook" loading="lazy">
-                </figure>
-                <div class="layout-split__content">
-                    <h3>Designed for experience design teams</h3>
-                    <p>Use Literate Lamp as the visual OS for pop-up exhibitions, themed cafés, or fandom nights. With one CSS file, you can orchestrate typography, lighting cues, and ambient textures across every page.</p>
-                    <ul class="spec-list" role="list">
-                        <li class="spec-item"><strong>Micro-interactions:</strong> Motion-tuned transitions plus theme-specific accents.</li>
-                        <li class="spec-item"><strong>Accessibility:</strong> Contrast-aware palettes and reduced motion support.</li>
-                        <li class="spec-item"><strong>Performance:</strong> Zero framework, no heavy dependencies, deferred assets.</li>
-                    </ul>
-                    <a class="accent-link" href="#assets">See asset recommendations →</a>
-                </div>
-            </div>
-        </section>
-
-        <section class="section" id="assets">
-            <div class="container">
-                <div class="section__heading">
-                    <span class="section__eyebrow">Asset starter kit</span>
-                    <h2 class="section__title">Placeholders & sources to swap in per theme</h2>
-                    <p class="section__lead">Keep bundles lean by loading responsive images only when needed. Use CSS variables to point to your chosen assets.</p>
-                </div>
-
-                <div class="feature-grid">
-                    <article class="feature-card">
-                        <h3>Default theme</h3>
-                        <p><strong>Hero:</strong> Unsplash — search for “library lighting” (e.g., photo by Susan Yin). <strong>Texture:</strong> subtlepaper.com “Antique” 1200px PNG. <strong>Icons:</strong> Phosphor Icons thin set.</p>
-                    </article>
-                    <article class="feature-card">
-                        <h3>Anime fan</h3>
-                        <p><strong>Hero:</strong> Shot on Unsplash by Clay Banks (city neon clouds). <strong>Texture:</strong> svgbackgrounds.com “Aurora”. <strong>Icons:</strong> Iconoir rounded set or custom SVG strokes at 24px.</p>
-                    </article>
-                    <article class="feature-card">
-                        <h3>Stranger Things fan</h3>
-                        <p><strong>Hero:</strong> Pexels — keyword “retro arcade lights”. <strong>Texture:</strong> transparentpatterns.com “Noisy Grid”. <strong>Icons:</strong> Remix Icon line set with neon tint.</p>
-                    </article>
-                </div>
-            </div>
-        </section>
-
-        <section class="section" id="contact">
-            <div class="container testimonial-grid">
-                <article class="testimonial-card">
-                    <blockquote>“Theme switching feels instant. We previewed mood boards for three fandom nights without rebuilding layouts.”</blockquote>
-                    <p class="testimonial-meta">June Park · Experiential Producer</p>
-                </article>
-                <article class="testimonial-card">
-                    <blockquote>“The Stranger Things glow is perfect for synthwave pop-ups. Contrast still passes WCAG.”</blockquote>
-                    <p class="testimonial-meta">Miguel Ortiz · Lighting Designer</p>
-                </article>
-                <article class="testimonial-card">
-                    <blockquote>“Anime mode adds just enough delight — our community loved the gradient shimmer.”</blockquote>
-                    <p class="testimonial-meta">Aya Nakamura · Café Curator</p>
-                </article>
-            </div>
-
-            <div class="container highlight-banner" style="margin-top:3rem;">
-                <div>
-                    <strong>Connect with us</strong>
-                    <p>Email <a href="mailto:hello@literatelamp.com">hello@literatelamp.com</a> · Phone <a href="tel:+15551234567">(555) 123-4567</a></p>
-                </div>
-                <a class="button button--primary" href="reservation.html">Preview booking flow</a>
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <div class="container footer-grid">
-            <div class="footer-brand">
-                <span class="site-brand__name">Literate Lamp</span>
-                <p>Building atmospheric experiences with modular themes, accessible typography, and micro-interactions.</p>
-            </div>
-            <nav class="footer-nav" aria-label="Footer">
-                <a href="#story">Story</a>
-                <a href="#collections">Collections</a>
-                <a href="#experience">Experience</a>
-                <a href="#assets">Asset kit</a>
-                <a href="#contact">Contact</a>
-            </nav>
-            <div class="footer-nav" aria-label="Resources">
-                <a href="QUICKSTART.md">Quickstart</a>
-                <a href="REAL_WORLD_TEST_PLAN.md">Test plan</a>
-                <a href="SETUP.md">Setup guide</a>
             </div>
         </div>
-        <p class="footer-note">© 2025 Literate Lamp. Crafted for modern atmosphere designers.</p>
+    </section>
+
+    <section id="contact" class="contact-section">
+        <div class="container">
+            <h2>Contact Us</h2>
+            <p>Questions? We'd love to hear from you.</p>
+            <p>Email: hello@mindfuldining.com | Phone: (555) 123-4567</p>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Mindful Dining. All rights reserved.</p>
+        </div>
     </footer>
+
+    <script src="js/main.js"></script>
 </body>
 </html>
