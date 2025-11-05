@@ -1,0 +1,57 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Stranger Things Avatar 3: Retro arcade style character -->
+  <defs>
+    <linearGradient id="stbg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A1A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0D0D0D;stop-opacity:1" />
+    </linearGradient>
+    <filter id="neonGlow3">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background with grid -->
+  <circle cx="100" cy="100" r="100" fill="url(#stbg3)"/>
+  <line x1="0" y1="100" x2="200" y2="100" stroke="#404040" stroke-width="1" opacity="0.3"/>
+  <line x1="100" y1="0" x2="100" y2="200" stroke="#404040" stroke-width="1" opacity="0.3"/>
+  
+  <!-- Head - geometric/pixelated style -->
+  <rect x="70" y="70" width="60" height="50" fill="#2D2D2D" rx="5"/>
+  <rect x="70" y="70" width="60" height="50" fill="none" stroke="#00FFFF" stroke-width="3" rx="5" filter="url(#neonGlow3)"/>
+  
+  <!-- Visor/glasses -->
+  <rect x="75" y="85" width="22" height="12" fill="#FF3366" filter="url(#neonGlow3)"/>
+  <rect x="103" y="85" width="22" height="12" fill="#FF3366" filter="url(#neonGlow3)"/>
+  <rect x="97" y="87" width="6" height="8" fill="#2D2D2D"/>
+  
+  <!-- Glowing pixels in visor -->
+  <rect x="80" y="89" width="4" height="4" fill="#00FFFF" opacity="0.8"/>
+  <rect x="88" y="89" width="4" height="4" fill="#00FFFF" opacity="0.8"/>
+  <rect x="108" y="89" width="4" height="4" fill="#00FFFF" opacity="0.8"/>
+  <rect x="116" y="89" width="4" height="4" fill="#00FFFF" opacity="0.8"/>
+  
+  <!-- Antenna -->
+  <line x1="100" y1="70" x2="100" y2="55" stroke="#FF3366" stroke-width="2"/>
+  <circle cx="100" cy="52" r="4" fill="#FF3366" filter="url(#neonGlow3)"/>
+  
+  <!-- Body -->
+  <rect x="65" y="125" width="70" height="75" fill="#2D2D2D" rx="3"/>
+  
+  <!-- Neon patterns on body -->
+  <rect x="75" y="135" width="50" height="3" fill="#00FFFF" filter="url(#neonGlow3)"/>
+  <rect x="75" y="145" width="50" height="3" fill="#FF3366" filter="url(#neonGlow3)"/>
+  <rect x="75" y="155" width="50" height="3" fill="#00FFFF" filter="url(#neonGlow3)"/>
+  
+  <!-- Digital pattern -->
+  <circle cx="85" cy="170" r="5" fill="none" stroke="#FF3366" stroke-width="2" opacity="0.6"/>
+  <circle cx="100" cy="170" r="5" fill="none" stroke="#00FFFF" stroke-width="2" opacity="0.6"/>
+  <circle cx="115" cy="170" r="5" fill="none" stroke="#FF3366" stroke-width="2" opacity="0.6"/>
+  
+  <!-- Corner brackets for retro feel -->
+  <path d="M 65 125 L 65 130 M 65 125 L 70 125" stroke="#00FFFF" stroke-width="2"/>
+  <path d="M 135 125 L 135 130 M 135 125 L 130 125" stroke="#00FFFF" stroke-width="2"/>
+</svg>
