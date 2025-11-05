@@ -1,75 +1,74 @@
-// Main JavaScript file for homepage functionality
-document.addEventListener('DOMContentLoaded', function() {
-    // Smooth scrolling for navigation links
-    const navLinks = document.querySelectorAll('.nav-menu a[href^="#"]');
-    
-    navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const targetId = this.getAttribute('href');
-            const targetSection = document.querySelector(targetId);
-            
-            if (targetSection) {
-                const navHeight = document.querySelector('.navbar').offsetHeight;
-                const targetPosition = targetSection.offsetTop - navHeight;
-                
-                window.scrollTo({
-                    top: targetPosition,
-                    behavior: 'smooth'
-                });
-            }
+// Literate Lamp homepage interactivity
+document.addEventListener('DOMContentLoaded', () => {
+    const header = document.querySelector('.site-header');
+    const navLinks = document.querySelectorAll('a[href^="#"]');
+
+    // Smooth scroll with offset for sticky header
+    const scrollWithOffset = (target) => {
+        const top = target.getBoundingClientRect().top + window.scrollY;
+        const offset = header ? header.getBoundingClientRect().height + 16 : 0;
+        window.scrollTo({
+            top: Math.max(top - offset, 0),
+            behavior: 'smooth'
         });
-    });
-
-    // Add animation to hero section
-    const heroContent = document.querySelector('.hero-content');
-    if (heroContent) {
-        heroContent.style.opacity = '0';
-        heroContent.style.transform = 'translateY(30px)';
-        
-        setTimeout(() => {
-            heroContent.style.transition = 'opacity 1s ease, transform 1s ease';
-            heroContent.style.opacity = '1';
-            heroContent.style.transform = 'translateY(0)';
-        }, 500);
-    }
-
-    // Animate steps on scroll
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
     };
 
-    const observer = new IntersectionObserver(function(entries) {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, observerOptions);
+    navLinks.forEach((link) => {
+        link.addEventListener('click', (event) => {
+            const hash = link.getAttribute('href');
+            if (!hash || hash === '#') return;
 
-    // Observe step elements
-    const steps = document.querySelectorAll('.step');
-    steps.forEach((step, index) => {
-        step.style.opacity = '0';
-        step.style.transform = 'translateY(30px)';
-        step.style.transition = `opacity 0.6s ease ${index * 0.2}s, transform 0.6s ease ${index * 0.2}s`;
-        observer.observe(step);
+            const target = document.querySelector(hash);
+            if (!target) return;
+
+            event.preventDefault();
+            scrollWithOffset(target);
+            history.pushState(null, '', hash);
+        });
     });
 
-    // Add hover effect to CTA button
-    const ctaButton = document.querySelector('.cta-button');
-    if (ctaButton) {
-        ctaButton.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-2px) scale(1.05)';
-        });
-        
-        ctaButton.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0) scale(1)';
+    // Hero entrance animation
+    const heroContent = document.querySelector('.hero__content');
+    const heroCard = document.querySelector('.hero-card');
+    if (heroContent) {
+        heroContent.style.opacity = '0';
+        heroContent.style.transform = 'translateY(40px)';
+        requestAnimationFrame(() => {
+            heroContent.style.transition = 'opacity 700ms var(--motion-ease-hero), transform 700ms var(--motion-ease-hero)';
+            heroContent.style.opacity = '1';
+            heroContent.style.transform = 'translateY(0)';
         });
     }
+    if (heroCard) {
+        heroCard.style.opacity = '0';
+        heroCard.style.transform = 'translateY(60px)';
+        requestAnimationFrame(() => {
+            heroCard.style.transition = 'opacity 800ms var(--motion-ease-hero) 120ms, transform 800ms var(--motion-ease-hero) 120ms';
+            heroCard.style.opacity = '1';
+            heroCard.style.transform = 'translateY(0)';
+        });
+    }
+
+    // Intersection observer for feature cards and testimonial reveal
+    const animatedBlocks = document.querySelectorAll('.feature-card, .spec-item, .testimonial-card');
+    const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                entry.target.style.setProperty('transition', 'opacity 700ms var(--motion-ease), transform 700ms var(--motion-ease)');
+                entry.target.style.setProperty('opacity', '1');
+                entry.target.style.setProperty('transform', 'translateY(0)');
+                obs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -10%' });
+
+    animatedBlocks.forEach((block, index) => {
+        block.style.opacity = '0';
+        block.style.transform = 'translateY(30px)';
+        block.style.transitionDelay = `${index * 60}ms`;
+        observer.observe(block);
+    });
 });
 
 // Utility function to get URL parameters
@@ -86,49 +85,39 @@ function showNotification(message, type = 'info') {
     notification.className = `notification notification-${type}`;
     notification.style.cssText = `
         position: fixed;
-        top: 80px;
-        right: 20px;
-        background-color: ${type === 'error' ? '#d32f2f' : type === 'success' ? '#2e7d32' : '#1976d2'};
-        color: white;
-        padding: 15px 20px;
-        border-radius: 5px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        top: 88px;
+        right: 24px;
+        background: ${type === 'error' ? 'rgba(168, 7, 43, 0.95)' : type === 'success' ? 'rgba(32, 151, 88, 0.95)' : 'rgba(39, 107, 202, 0.95)'};
+        color: #fff;
+        padding: 16px 20px;
+        border-radius: 999px;
+        box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.45);
         z-index: 10000;
-        transform: translateX(400px);
-        transition: transform 0.3s ease;
-        max-width: 300px;
-        font-weight: 500;
+        transform: translateX(360px);
+        transition: transform 320ms var(--motion-ease);
+        max-width: min(320px, calc(100vw - 32px));
+        font-weight: 600;
+        letter-spacing: 0.02em;
     `;
-    
+
     notification.textContent = message;
     document.body.appendChild(notification);
-    
-    // Slide in
-    setTimeout(() => {
+
+    requestAnimationFrame(() => {
         notification.style.transform = 'translateX(0)';
-    }, 100);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        notification.style.transform = 'translateX(400px)';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 300);
-    }, 5000);
-    
-    // Click to dismiss
-    notification.addEventListener('click', () => {
-        notification.style.transform = 'translateX(400px)';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 300);
     });
+
+    const dismiss = () => {
+        notification.style.transform = 'translateX(360px)';
+        setTimeout(() => notification.remove(), 320);
+    };
+
+    const timeout = window.setTimeout(dismiss, 5000);
+
+    notification.addEventListener('mouseenter', () => window.clearTimeout(timeout));
+    notification.addEventListener('mouseleave', () => window.setTimeout(dismiss, 2000));
+    notification.addEventListener('click', dismiss);
 }
 
-// Export functions for use in other files
 window.showNotification = showNotification;
 window.getUrlParameter = getUrlParameter;

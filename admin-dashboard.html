@@ -3,23 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Mindful Dining</title>
+    <title>Admin Dashboard · Literate Lamp</title>
     <link rel="stylesheet" href="css/styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script defer src="js/theme.js"></script>
     <style>
         .admin-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: clamp(1.5rem, 2vw, 2.5rem);
         }
         
         .admin-header {
-            background: linear-gradient(135deg, #8B4513, #A0522D);
-            color: white;
-            padding: 30px;
-            border-radius: 10px;
-            margin-bottom: 30px;
+            background: var(--accent-gradient);
+            color: #0c0601;
+            padding: clamp(2rem, 3vw, 2.75rem);
+            border-radius: var(--radius-lg);
+            margin-bottom: clamp(2rem, 3vw, 2.75rem);
             text-align: center;
+            box-shadow: var(--accent-glow);
         }
         
         .admin-nav {
@@ -31,26 +34,28 @@
         
         .admin-nav button {
             padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            background-color: #8B4513;
-            color: white;
+            border: 1px solid transparent;
+            border-radius: var(--radius-sm);
+            background: var(--accent-gradient);
+            color: #0c0601;
             cursor: pointer;
             font-weight: 600;
-            transition: background-color 0.3s ease;
+            transition: transform var(--motion-duration) var(--motion-ease), box-shadow var(--motion-duration) var(--motion-ease);
         }
         
         .admin-nav button:hover,
         .admin-nav button.active {
-            background-color: #A0522D;
+            transform: translateY(-2px);
+            box-shadow: var(--accent-glow);
         }
         
         .admin-section {
-            background: white;
-            border-radius: 10px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            background: var(--color-surface-strong);
+            border-radius: var(--radius-lg);
+            padding: clamp(2rem, 2.5vw, 2.75rem);
+            margin-bottom: clamp(2rem, 3vw, 2.75rem);
+            border: 1px solid var(--color-card-border);
+            box-shadow: var(--shadow-soft);
         }
         
         .admin-section.hidden {
@@ -65,17 +70,17 @@
         }
         
         .stat-card {
-            background: #f8f8f8;
+            background: var(--color-surface);
             padding: 20px;
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             text-align: center;
-            border-left: 4px solid #8B4513;
+            border-left: 4px solid var(--color-accent);
         }
         
         .stat-number {
             font-size: 2rem;
             font-weight: bold;
-            color: #8B4513;
+            color: var(--color-heading);
         }
         
         .stat-label {
@@ -93,24 +98,24 @@
         .reservations-table td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid var(--color-border);
         }
         
         .reservations-table th {
-            background-color: #f8f8f8;
+            background-color: color-mix(in srgb, var(--color-surface) 90%, var(--color-bg) 10%);
             font-weight: 600;
         }
         
         .group-container {
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
             margin-bottom: 20px;
             overflow: hidden;
         }
         
         .group-header {
-            background-color: #8B4513;
-            color: white;
+            background: var(--accent-gradient);
+            color: #0c0601;
             padding: 15px;
             display: flex;
             justify-content: space-between;
@@ -125,7 +130,7 @@
             display: flex;
             justify-content: space-between;
             padding: 10px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--color-border);
             align-items: center;
         }
         
@@ -138,7 +143,7 @@
         }
         
         .member-score {
-            background-color: #f0f0f0;
+            background: color-mix(in srgb, var(--color-accent-muted) 30%, transparent);
             padding: 4px 8px;
             border-radius: 12px;
             font-size: 0.9rem;
@@ -161,14 +166,15 @@
         
         .date-filter input {
             padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border: 1px solid var(--control-border);
+            border-radius: var(--radius-sm);
+            background: var(--control-bg);
         }
         
         .export-section {
             margin-top: 30px;
             padding-top: 20px;
-            border-top: 2px solid #f0f0f0;
+            border-top: 1px solid var(--color-border);
         }
         
         .action-buttons {
@@ -178,32 +184,35 @@
         }
         
         .btn-primary {
-            background-color: #8B4513;
-            color: white;
+            background: var(--accent-gradient);
+            color: #0c0601;
             padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
+            border: 1px solid transparent;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-weight: 600;
-            transition: background-color 0.3s ease;
+            transition: transform var(--motion-duration) var(--motion-ease), box-shadow var(--motion-duration) var(--motion-ease);
         }
         
         .btn-primary:hover {
-            background-color: #A0522D;
+            transform: translateY(-2px);
+            box-shadow: var(--accent-glow);
         }
         
         .btn-secondary {
-            background-color: #6c757d;
-            color: white;
+            background-color: var(--color-surface);
+            color: var(--color-text);
             padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-weight: 600;
+            transition: transform var(--motion-duration) var(--motion-ease), background-color var(--motion-duration) var(--motion-ease);
         }
         
         .btn-secondary:hover {
-            background-color: #5a6268;
+            transform: translateY(-2px);
+            background-color: color-mix(in srgb, var(--color-surface) 70%, var(--color-bg) 30%);
         }
         
         .loading {
@@ -220,11 +229,37 @@
         }
     </style>
 </head>
-<body>
+<body class="theme-default" data-page="admin">
+    <header class="site-header">
+        <nav class="site-nav container" aria-label="Primary">
+            <div class="site-brand">
+                <a class="site-brand__name" href="index.html">Literate Lamp</a>
+                <span class="site-brand__tagline">Admin dashboard</span>
+            </div>
+            <ul class="nav-menu" role="list">
+                <li><a href="index.html#story">Story</a></li>
+                <li><a href="reservation.html">Reservation</a></li>
+                <li><a href="table-assignment.html">Table assignment</a></li>
+            </ul>
+            <div class="utility-actions">
+                <label class="theme-switcher">
+                    <span class="theme-switcher__label">Theme</span>
+                    <select name="theme" aria-label="Select a theme for Literate Lamp">
+                        <option value="theme-default">Default</option>
+                        <option value="theme-anime">Anime Fan</option>
+                        <option value="theme-stranger">Stranger Things Fan</option>
+                    </select>
+                    <svg class="theme-switcher__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="currentColor" d="M7 10l5 5 5-5H7z"/>
+                    </svg>
+                </label>
+            </div>
+        </nav>
+    </header>
     <div class="admin-container">
         <div class="admin-header">
-            <h1>Mindful Dining Admin Dashboard</h1>
-            <p>Manage reservations, create groups, and track events</p>
+            <h1>Literate Lamp Admin Console</h1>
+            <p>Manage immersive reservations, table groupings, and themed experiences</p>
         </div>
         
         <div class="admin-nav">

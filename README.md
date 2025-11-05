@@ -1,5 +1,7 @@
 # Mindful Dining - Restaurant Reservation & Personality Matching System
 
+> **Literate Lamp redesign**: A multi-theme front-end layer now powers the landing site. See `README_THEME_SUPPORT.md` for theme variables, asset sources, and extension guidance.
+
 A pilot project for creating meaningful dining experiences by matching guests based on personality compatibility.
 
 ## 🎯 Features
