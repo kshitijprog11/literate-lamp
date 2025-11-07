@@ -201,6 +201,7 @@ a {
   list-style: none;
   gap: var(--spacing-2xl);
   align-items: center;
+  margin-left: auto;
 }
 
 .nav-menu a {

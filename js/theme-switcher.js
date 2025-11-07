@@ -98,15 +98,15 @@
    * Create and inject theme switcher UI into navbar
    */
   function injectThemeSwitcher() {
-    // Find the nav menu
-    const navMenu = document.querySelector('.nav-menu');
-    if (!navMenu) return;
+    // Find the nav container to host the theme switcher
+    const navContainer = document.querySelector('.nav-container');
+    if (!navContainer || navContainer.querySelector('.theme-switcher')) return;
 
     // Create theme switcher HTML
     const themeSwitcherHTML = `
-      <li class="theme-switcher">
+      <div class="theme-switcher" role="region" aria-label="Theme selector">
         <span class="theme-switcher-label">Theme</span>
-        <div class="theme-buttons">
+        <div class="theme-buttons" role="group" aria-label="Theme options">
           <button class="theme-button" data-theme="default" aria-label="Default Theme">
             Default
           </button>
@@ -117,11 +117,16 @@
             ST
           </button>
         </div>
-      </li>
+      </div>
     `;
 
-    // Insert at the end of nav menu
-    navMenu.insertAdjacentHTML('beforeend', themeSwitcherHTML);
+    // Prefer placing the switcher immediately after the nav menu for desktop layout
+    const navMenu = navContainer.querySelector('.nav-menu');
+    if (navMenu) {
+      navMenu.insertAdjacentHTML('afterend', themeSwitcherHTML);
+    } else {
+      navContainer.insertAdjacentHTML('beforeend', themeSwitcherHTML);
+    }
   }
 
   /**
