@@ -1,3 +1,4 @@
+// TODO: Add EmailJS SDK to the HTML head: <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 // Reservation form functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Set minimum date to today
@@ -34,20 +35,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Process reservation (save to Firebase or localStorage)
                 const reservationId = await saveReservation({
                     ...reservationData,
-                    paymentId: 'demo_reservation_' + Date.now(),
                     createdAt: new Date().toISOString(),
                     status: 'confirmed',
-                    demoMode: true,
                     amount: 75,
-                    paymentStatus: 'paid' // Simulate successful payment
+                    paymentStatus: 'pending' // No payment integration
                 });
+                
+                // Send confirmation email
+                await sendConfirmationEmail(reservationData);
                 
                 // Store data in session for the next step
                 sessionStorage.setItem('reservationId', reservationId);
                 sessionStorage.setItem('reservationData', JSON.stringify(reservationData));
                 
-                // Redirect to personality test upon success
-                window.location.href = 'personality-test.html';
+                // Redirect to confirmation page
+                window.location.href = 'confirmation.html';
                 
             } catch (error) {
                 console.error('Error processing reservation:', error);
@@ -166,3 +168,36 @@ requiredInputs.forEach(input => {
         }
     });
 });
+
+/**
+ * Sends a confirmation email using EmailJS
+ * @param {Object} data - The reservation data
+ */
+async function sendConfirmationEmail(data) {
+    // Check if EmailJS is available
+    if (typeof emailjs === 'undefined') {
+        console.warn('EmailJS not loaded, skipping email');
+        return;
+    }
+
+    try {
+        // Replace with your Service ID and Template ID
+        const serviceID = 'YOUR_SERVICE_ID';
+        const templateID = 'YOUR_TEMPLATE_ID';
+        
+        const templateParams = {
+            to_name: data.firstName + ' ' + data.lastName,
+            to_email: data.email,
+            event_date: data.eventDate,
+            time_slot: data.timeSlot,
+            party_size: 1, // Defaulting to 1 for individual reservations
+            dietary_restrictions: data.dietaryRestrictions || 'None'
+        };
+
+        await emailjs.send(serviceID, templateID, templateParams);
+        console.log('Confirmation email sent successfully');
+    } catch (error) {
+        console.error('Failed to send confirmation email:', error);
+        // We don't block the flow if email fails, just log it
+    }
+}
