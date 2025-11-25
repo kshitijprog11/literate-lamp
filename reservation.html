@@ -30,64 +30,85 @@
     <main class="reservation-main">
         <div class="container">
             <div class="reservation-form-container">
-                <h1>Make Your Reservation</h1>
-                <p class="form-description">Reserve your spot for an unforgettable dining experience. After booking, you'll take a quick personality test to be matched with compatible dining companions.</p>
-                
-                <form id="reservation-form" class="reservation-form">
-                    <div class="form-section">
-                        <h3>Personal Information</h3>
-                        <div class="form-group">
-                            <label for="firstName">First Name *</label>
-                            <input type="text" id="firstName" name="firstName" required>
+                <div id="reservation-details-section">
+                    <h1>Make Your Reservation</h1>
+                    <p class="form-description">Reserve your spot for an unforgettable dining experience. After booking, you'll take a quick personality test to be matched with compatible dining companions.</p>
+                    
+                    <form id="reservation-form" class="reservation-form">
+                        <div class="form-section">
+                            <h3>Personal Information</h3>
+                            <div class="form-group">
+                                <label for="firstName">First Name *</label>
+                                <input type="text" id="firstName" name="firstName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName">Last Name *</label>
+                                <input type="text" id="lastName" name="lastName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email Address *</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Phone Number</label>
+                                <input type="tel" id="phone" name="phone">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="lastName">Last Name *</label>
-                            <input type="text" id="lastName" name="lastName" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email Address *</label>
-                            <input type="email" id="email" name="email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="phone">Phone Number</label>
-                            <input type="tel" id="phone" name="phone">
-                        </div>
-                    </div>
 
-                    <div class="form-section">
-                        <h3>Reservation Details</h3>
-                        <div class="form-group">
-                            <label for="eventDate">Select Date *</label>
-                            <input type="date" id="eventDate" name="eventDate" required>
+                        <div class="form-section">
+                            <h3>Reservation Details</h3>
+                            <div class="form-group">
+                                <label for="eventDate">Select Date *</label>
+                                <input type="date" id="eventDate" name="eventDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="timeSlot">Time Slot *</label>
+                                <select id="timeSlot" name="timeSlot" required>
+                                    <option value="">Select a time</option>
+                                    <option value="6:00 PM">6:00 PM</option>
+                                    <option value="7:00 PM">7:00 PM</option>
+                                    <option value="8:00 PM">8:00 PM</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="dietaryRestrictions">Dietary Restrictions</label>
+                                <textarea id="dietaryRestrictions" name="dietaryRestrictions" rows="3" placeholder="Please let us know about any allergies or dietary preferences"></textarea>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="timeSlot">Time Slot *</label>
-                            <select id="timeSlot" name="timeSlot" required>
-                                <option value="">Select a time</option>
-                                <option value="6:00 PM">6:00 PM</option>
-                                <option value="7:00 PM">7:00 PM</option>
-                                <option value="8:00 PM">8:00 PM</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="dietaryRestrictions">Dietary Restrictions</label>
-                            <textarea id="dietaryRestrictions" name="dietaryRestrictions" rows="3" placeholder="Please let us know about any allergies or dietary preferences"></textarea>
-                        </div>
-                    </div>
 
-                    <div class="form-section">
-                        <h3>Payment Information</h3>
-                        <div class="pricing-info">
-                            <p><strong>Price per person: $75</strong></p>
-                            <p>Includes 4-course meal, beverages, and matching service</p>
+                        <div class="form-section">
+                            <h3>Payment Information</h3>
+                            <div class="pricing-info">
+                                <p><strong>Price per person: $75</strong></p>
+                                <p>Includes 4-course meal, beverages, and matching service</p>
+                            </div>
                         </div>
-                    </div>
 
-                    <button type="submit" id="submit-button" class="submit-button">
-                        <span id="button-text">Confirm Reservation</span>
-                        <div id="spinner" class="spinner hidden"></div>
-                    </button>
-                </form>
+                        <button type="submit" id="submit-button" class="submit-button">
+                            <span id="button-text">Confirm Reservation</span>
+                            <div id="spinner" class="spinner hidden"></div>
+                        </button>
+                    </form>
+                </div>
+
+                <div id="personality-test-section" class="personality-test-card" style="display: none;">
+                    <div class="personality-test-header">
+                        <h2>Complete Your Personality Match</h2>
+                        <p>Answer a few quick questions so we can place you at the perfect table. Your reservation will only be finalized after this step.</p>
+                        <p class="personality-test-note">All questions are required.</p>
+                    </div>
+                    <div id="personality-inline-summary" class="personality-inline-summary" aria-live="polite"></div>
+                    <div id="personality-questions" class="personality-question-list">
+                        <!-- Questions injected via reservation.js -->
+                    </div>
+                    <div class="personality-test-actions">
+                        <button type="button" id="edit-reservation-button" class="secondary-button">Edit Reservation Details</button>
+                        <button type="button" id="finish-button" class="submit-button">
+                            <span id="finish-button-text">Finish &amp; Book</span>
+                            <div id="finish-spinner" class="spinner hidden"></div>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -121,6 +142,6 @@
         }
     </script>
     
-    <script src="js/reservation.js"></script>
+    <script type="module" src="js/reservation.js"></script>
 </body>
 </html>
