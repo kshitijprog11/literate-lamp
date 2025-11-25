@@ -1,67 +1,133 @@
-// TODO: Add EmailJS SDK to the HTML head: <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+import { personalityQuestions, calculatePersonalityScore, determinePersonalityType, buildPersonalityAnswerSummary } from './personality-test.js';
+
 // Reservation form functionality
-document.addEventListener('DOMContentLoaded', function() {
-    // Set minimum date to today
-    const eventDateInput = document.getElementById('eventDate');
-    if (eventDateInput) {
-        const today = new Date().toISOString().split('T')[0];
-        eventDateInput.min = today;
-    }
-    
-    // Form submission elements
+document.addEventListener('DOMContentLoaded', () => {
+    setMinimumReservationDate();
+
     const form = document.getElementById('reservation-form');
     const submitButton = document.getElementById('submit-button');
-    const spinner = document.getElementById('spinner');
-    const buttonText = document.getElementById('button-text');
-    
+    const reservationDetailsSection = document.getElementById('reservation-details-section');
+    const personalityTestSection = document.getElementById('personality-test-section');
+    const questionsContainer = document.getElementById('personality-questions');
+    const finishButton = document.getElementById('finish-button');
+    const finishButtonText = document.getElementById('finish-button-text');
+    const finishSpinner = document.getElementById('finish-spinner');
+    const editReservationButton = document.getElementById('edit-reservation-button');
+    const summaryContainer = document.getElementById('personality-inline-summary');
+
+    let currentStep = 'details';
+    let pendingReservationData = null;
+
+    renderPersonalityQuestions(questionsContainer);
+    updateAnsweredSummary(questionsContainer, summaryContainer);
+    if (questionsContainer) {
+        questionsContainer.addEventListener('change', () => {
+            updateAnsweredSummary(questionsContainer, summaryContainer);
+        });
+    }
+
     if (form) {
-        form.addEventListener('submit', async function(event) {
+        form.addEventListener('submit', (event) => {
             event.preventDefault();
-            
-            // Disable submit button and show spinner to indicate processing
-            if (submitButton) submitButton.disabled = true;
-            if (spinner) spinner.classList.remove('hidden');
-            if (buttonText) buttonText.textContent = 'Sending...';
-            
+
+            if (currentStep !== 'details') {
+                return;
+            }
+
+            const formData = new FormData(form);
+            const reservationData = Object.fromEntries(formData);
+
+            let isValid = false;
             try {
-                // Validate form data
-                const formData = new FormData(form);
-                const reservationData = Object.fromEntries(formData);
-                
-                if (!validateForm(reservationData)) {
-                    throw new Error('Please fill in all required fields');
-                }
-                
-                // Process reservation (save to Firebase or localStorage)
-                const reservationId = await saveReservation({
-                    ...reservationData,
-                    createdAt: new Date().toISOString(),
-                    status: 'confirmed',
-                    amount: 75,
-                    paymentStatus: 'pending' // No payment integration
-                });
-                
-                // Send confirmation email
-                await sendConfirmationEmail(reservationData);
-                
-                // Store data in session for the next step
+                isValid = validateForm(reservationData);
+            } catch (validationError) {
+                alert('Error: ' + validationError.message);
+                return;
+            }
+
+            if (!isValid) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            pendingReservationData = {
+                ...reservationData,
+                createdAt: new Date().toISOString(),
+                status: 'pending-personality',
+                amount: 75,
+                paymentStatus: 'pending'
+            };
+
+            currentStep = 'personality';
+            showPersonalityStep(reservationDetailsSection, personalityTestSection);
+            window.scrollTo({
+                top: personalityTestSection ? personalityTestSection.offsetTop - 40 : 0,
+                behavior: 'smooth'
+            });
+        });
+    }
+
+    if (finishButton) {
+        finishButton.addEventListener('click', async () => {
+            if (!pendingReservationData) {
+                alert('Please complete your reservation details first.');
+                return;
+            }
+
+            const answerIndices = collectAnswerIndices(questionsContainer);
+            if (!answerIndices) {
+                alert('Please answer every question to finish your booking.');
+                return;
+            }
+
+            const score = calculatePersonalityScore(answerIndices);
+            const personality = determinePersonalityType(score);
+            const answerSummary = buildPersonalityAnswerSummary(answerIndices);
+
+            const reservationPayload = {
+                ...pendingReservationData,
+                personalityScore: score,
+                personalityProfile: personality.type,
+                personalityDetails: {
+                    description: personality.description,
+                    traits: personality.traits,
+                    answers: answerSummary
+                },
+                completedPersonalityAt: new Date().toISOString(),
+                status: 'confirmed'
+            };
+
+            toggleFinishButtonState(true, finishButton, finishSpinner, finishButtonText);
+
+            try {
+                const reservationId = await saveReservation(reservationPayload);
+                await sendConfirmationEmail(reservationPayload);
+
                 sessionStorage.setItem('reservationId', reservationId);
-                sessionStorage.setItem('reservationData', JSON.stringify(reservationData));
-                
-                // Redirect to confirmation page
+                sessionStorage.setItem('reservationData', JSON.stringify(reservationPayload));
+
                 window.location.href = 'confirmation.html';
-                
             } catch (error) {
-                console.error('Error processing reservation:', error);
+                console.error('Error finalizing reservation:', error);
                 alert('Error: ' + error.message);
-                
-                // Re-enable submit button on error
-                if (submitButton) submitButton.disabled = false;
-                if (spinner) spinner.classList.add('hidden');
-                if (buttonText) buttonText.textContent = 'Complete Reservation - $75';
+            } finally {
+                toggleFinishButtonState(false, finishButton, finishSpinner, finishButtonText);
             }
         });
     }
+
+    if (editReservationButton) {
+        editReservationButton.addEventListener('click', () => {
+            currentStep = 'details';
+            showReservationStep(reservationDetailsSection, personalityTestSection);
+            if (submitButton) {
+                submitButton.focus();
+            }
+        });
+    }
+
+    setupPhoneFormatting();
+    setupRealTimeValidation();
 });
 
 /**
@@ -136,38 +202,141 @@ async function saveReservation(reservationData) {
     }
 }
 
-// Phone number formatting
-const phoneInput = document.getElementById('phone');
-if (phoneInput) {
-    phoneInput.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
+function setMinimumReservationDate() {
+    const eventDateInput = document.getElementById('eventDate');
+    if (eventDateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        eventDateInput.min = today;
+    }
+}
+
+function renderPersonalityQuestions(container) {
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = personalityQuestions.map((question, questionIndex) => `
+        <div class="personality-question" data-question="${questionIndex}">
+            <h3>Question ${questionIndex + 1}</h3>
+            <p>${question.text}</p>
+            <div class="personality-options">
+                ${question.options.map((option, optionIndex) => `
+                    <label class="personality-option">
+                        <input 
+                            type="radio" 
+                            name="personality-question-${questionIndex}" 
+                            value="${optionIndex}" 
+                            data-question-index="${questionIndex}"
+                            required
+                        >
+                        <span>${option.text}</span>
+                    </label>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+function collectAnswerIndices(container) {
+    if (!container) {
+        return null;
+    }
+
+    const answers = [];
+    for (let i = 0; i < personalityQuestions.length; i++) {
+        const selected = container.querySelector(`input[name="personality-question-${i}"]:checked`);
+        if (!selected) {
+            return null;
+        }
+        answers.push(Number(selected.value));
+    }
+    return answers;
+}
+
+function updateAnsweredSummary(container, summaryElement) {
+    if (!container || !summaryElement) {
+        return;
+    }
+
+    const answered = container.querySelectorAll('input[type="radio"]:checked').length;
+    const total = personalityQuestions.length;
+
+    if (answered === total) {
+        summaryElement.textContent = 'All questions answered. Select "Finish & Book" to complete your reservation.';
+    } else {
+        summaryElement.textContent = `${answered} of ${total} questions answered.`;
+    }
+}
+
+function showPersonalityStep(detailsSection, testSection) {
+    if (detailsSection) {
+        detailsSection.style.display = 'none';
+    }
+    if (testSection) {
+        testSection.style.display = 'block';
+    }
+}
+
+function showReservationStep(detailsSection, testSection) {
+    if (detailsSection) {
+        detailsSection.style.display = '';
+    }
+    if (testSection) {
+        testSection.style.display = 'none';
+    }
+}
+
+function toggleFinishButtonState(isLoading, button, spinner, textElement) {
+    if (!button) {
+        return;
+    }
+
+    button.disabled = isLoading;
+
+    if (spinner) {
+        spinner.classList.toggle('hidden', !isLoading);
+    }
+
+    if (textElement) {
+        textElement.textContent = isLoading ? 'Booking...' : 'Finish & Book';
+    }
+}
+
+function setupPhoneFormatting() {
+    const phoneInput = document.getElementById('phone');
+    if (!phoneInput) {
+        return;
+    }
+
+    phoneInput.addEventListener('input', (event) => {
+        let value = event.target.value.replace(/\D/g, '');
         if (value.length >= 6) {
             value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
         } else if (value.length >= 3) {
             value = value.replace(/(\d{3})(\d{0,3})/, '($1) $2');
         }
-        e.target.value = value;
+        event.target.value = value;
     });
 }
 
-// Real-time validation feedback
-const requiredInputs = document.querySelectorAll('input[required], select[required]');
-requiredInputs.forEach(input => {
-    input.addEventListener('blur', function() {
-        if (this.value.trim() === '') {
-            this.style.borderColor = '#d32f2f'; // Red for error
-        } else {
-            this.style.borderColor = '#4caf50'; // Green for success
-        }
+function setupRealTimeValidation() {
+    const requiredInputs = document.querySelectorAll('input[required], select[required]');
+    requiredInputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.value.trim() === '') {
+                this.style.borderColor = '#d32f2f';
+            } else {
+                this.style.borderColor = '#4caf50';
+            }
+        });
+        
+        input.addEventListener('input', function() {
+            if (this.style.borderColor === 'rgb(211, 47, 47)' && this.value.trim() !== '') {
+                this.style.borderColor = '#e0e0e0';
+            }
+        });
     });
-    
-    input.addEventListener('input', function() {
-        // Clear error color when user starts typing
-        if (this.style.borderColor === 'rgb(211, 47, 47)' && this.value.trim() !== '') {
-            this.style.borderColor = '#e0e0e0';
-        }
-    });
-});
+}
 
 /**
  * Sends a confirmation email using EmailJS
