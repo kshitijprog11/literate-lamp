@@ -80,40 +80,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function sendConfirmationEmail(reservationData) {
         // In a real application, this would trigger an email via your backend
-        // For this demo, we'll just show a notification
         setTimeout(() => {
             showNotification('Confirmation email sent to ' + reservationData.email, 'success');
         }, 2000);
-        
-        // Simulate email sending to backend
-        simulateEmailSend(reservationData);
-    }
-    
-    async function simulateEmailSend(data) {
-        try {
-            // This would typically be a POST request to your backend
-            console.log('Sending confirmation email for:', data.email);
-            
-            // In a real app, you might call SendGrid API through your backend:
-            /*
-            const response = await fetch('/api/send-confirmation-email', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    to: data.email,
-                    name: `${data.firstName} ${data.lastName}`,
-                    reservationId: sessionStorage.getItem('reservationId'),
-                    eventDate: data.eventDate,
-                    timeSlot: data.timeSlot
-                })
-            });
-            */
-            
-        } catch (error) {
-            console.error('Error sending confirmation email:', error);
-        }
     }
     
     // Print functionality
@@ -136,13 +105,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 100);
         });
     }
-    
-    // Clear session data after successful confirmation
-    // Keep it for now in case user refreshes page
-    setTimeout(() => {
-        // Only clear after user has had time to see confirmation
-        // sessionStorage.clear();
-    }, 300000); // Clear after 5 minutes
 });
 
 // Additional utility functions

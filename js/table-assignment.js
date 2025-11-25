@@ -18,8 +18,6 @@ class TableAssignmentManager {
             const email = urlParams.get('email');
             const reservationId = urlParams.get('id');
             
-            console.log('Loading assignment for:', { email, reservationId });
-            
             if (!email && !reservationId) {
                 this.showErrorState('no-identifier');
                 return;
@@ -253,9 +251,6 @@ class TableAssignmentManager {
         const allScores = data.members.map(m => m.personalityResults?.score || 0);
         const avgScore = Math.round(allScores.reduce((sum, score) => sum + score, 0) / allScores.length);
         document.getElementById('compatibility-score').textContent = `${avgScore}%`;
-        
-        // Log successful load
-        console.log('Table assignment loaded successfully:', data);
     }
 
     /**
@@ -276,11 +271,9 @@ class TableAssignmentManager {
 document.addEventListener('DOMContentLoaded', function() {
     // Check if Firebase is loaded
     if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
-        console.log('Using real Firebase data');
         const assignmentManager = new TableAssignmentManager();
         assignmentManager.init();
     } else {
-        console.log('Firebase not available, using demo data');
         // Fall back to demo data (existing code)
         loadDemoData();
     }

@@ -26,8 +26,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function setupEventListeners() {
-        console.log('🔧 Setting up event listeners...');
-        
         // Navigation buttons
         const prevButton = document.getElementById('prev-button');
         const nextButton = document.getElementById('next-button');
@@ -68,12 +66,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
-        
-        console.log('✅ Basic event listeners setup complete');
     }
     
     function addSaveButtonListener() {
-        console.log('🔧 Adding Save Results button listener...');
         const saveButton = document.getElementById('save-results');
         
         if (saveButton) {
@@ -83,20 +78,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Add fresh listener
             newSaveButton.addEventListener('click', async () => {
-                console.log('🔘 Save Results button clicked!');
                 try {
                     await saveResults();
-                    console.log('✅ Results saved, redirecting to confirmation...');
                     window.location.href = 'confirmation.html';
                 } catch (error) {
-                    console.error('❌ Error in Save Results button:', error);
+                    console.error('Error in Save Results button:', error);
                     alert('Error saving results: ' + error.message);
                 }
             });
-            
-            console.log('✅ Save Results button listener added');
-        } else {
-            console.error('❌ Save Results button not found!');
         }
     }
     
@@ -288,20 +277,15 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Try Firebase first (for real data sharing), then localStorage fallback
             if (window.FAST_TESTING_MODE || typeof window.db === 'undefined' || typeof window.updateDoc === 'undefined') {
-                console.log('⚡ Fallback mode: Saving personality results to localStorage');
                 const reservationData = JSON.parse(localStorage.getItem('reservation_' + reservationId) || '{}');
                 reservationData.personalityResults = results;
                 reservationData.updatedAt = new Date().toISOString();
                 localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
-                console.log('✅ Personality results saved locally');
-                console.log('⚠️ Note: This data won\'t be available for grouping with others');
                 return;
             }
             
             // Firebase mode (for real compatibility matching)
             try {
-                console.log('🔥 Saving personality results to Firebase for compatibility matching...');
-                
                 // Add 3-second timeout for Firebase
                 const updatePromise = window.updateDoc(window.doc(window.db, 'reservations', reservationId), {
                     personalityResults: results,
@@ -312,17 +296,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 );
                 
                 await Promise.race([updatePromise, timeoutPromise]);
-                console.log('✅ Personality results saved to Firebase');
-                console.log('🎯 Data is now available for compatibility matching!');
                 
             } catch (firebaseError) {
-                console.warn('⚠️ Firebase save failed, using localStorage fallback:', firebaseError.message);
+                console.warn('Firebase save failed, using localStorage fallback:', firebaseError.message);
                 const reservationData = JSON.parse(localStorage.getItem('reservation_' + reservationId) || '{}');
                 reservationData.personalityResults = results;
                 reservationData.updatedAt = new Date().toISOString();
                 localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
-                console.log('✅ Personality results saved locally (fallback)');
-                console.log('⚠️ Note: This data won\'t be available for grouping with others');
             }
             
         } catch (error) {
