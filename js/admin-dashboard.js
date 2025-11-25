@@ -542,8 +542,56 @@ function loadGroupsForNotification() {
     console.log('Loading groups for notification date:', selectedDate);
 }
 
-function sendTableAssignments() {
-    alert('Table assignment emails would be sent here (requires SendGrid integration)');
+async function sendTableAssignments() {
+    if (typeof emailjs === 'undefined') {
+        alert('EmailJS not loaded. Cannot send emails.');
+        return;
+    }
+    
+    // Get date from notification date picker or fallback
+    const dateStr = document.getElementById('notification-date').value || 'Upcoming Event';
+    
+    if (currentGroups.length === 0) {
+        alert('No groups loaded to notify.');
+        return;
+    }
+
+    const totalPeople = currentGroups.reduce((acc, g) => acc + g.members.length, 0);
+    if (!confirm(`Are you sure you want to send emails to ${totalPeople} people for ${dateStr}?`)) {
+        return;
+    }
+
+    const serviceID = 'YOUR_SERVICE_ID';
+    const templateID = 'YOUR_TABLE_ASSIGNMENT_TEMPLATE_ID';
+    
+    let sentCount = 0;
+    let errorCount = 0;
+
+    alert('Sending emails... check console for progress.');
+
+    for (const group of currentGroups) {
+        for (const member of group.members) {
+             const templateParams = {
+                to_name: member.firstName + ' ' + member.lastName,
+                to_email: member.email,
+                table_number: group.tableAssignment,
+                event_date: group.eventDate || dateStr,
+                group_size: group.size,
+                companions: group.members.filter(m => m.email !== member.email).map(m => m.firstName).join(', ')
+            };
+            
+            try {
+                await emailjs.send(serviceID, templateID, templateParams);
+                console.log(`Email sent to ${member.email}`);
+                sentCount++;
+            } catch (e) {
+                console.error(`Failed to send to ${member.email}`, e);
+                errorCount++;
+            }
+        }
+    }
+
+    alert(`Notifications process complete! Success: ${sentCount}, Failed: ${errorCount}`);
 }
 
 function previewNotifications() {
