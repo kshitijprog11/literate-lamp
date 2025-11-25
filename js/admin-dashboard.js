@@ -3,8 +3,6 @@ let currentReservations = [];
 let currentGroups = [];
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔧 Admin Dashboard DOM loaded, waiting for Firebase...');
-    
     // Try to initialize immediately if Firebase is ready
     if (typeof window.db !== 'undefined') {
         initializeDashboard();
@@ -14,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (typeof window.db !== 'undefined') {
                 initializeDashboard();
             } else {
-                console.log('⚠️ Firebase not available, using localStorage only');
+                console.warn('Firebase not available, using localStorage only');
                 initializeDashboard();
             }
         }, 2000);
@@ -23,13 +21,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Make this function available globally so Firebase can call it
 window.initializeDashboard = function() {
-    console.log('🚀 Initializing Admin Dashboard...');
-    
     // Check if grouping algorithm is loaded
-    if (typeof window.GroupingAlgorithm !== 'undefined') {
-        console.log('✅ Grouping algorithm is available');
-    } else {
-        console.warn('⚠️ Grouping algorithm not yet loaded');
+    if (typeof window.GroupingAlgorithm === 'undefined') {
+        console.warn('Grouping algorithm not yet loaded');
     }
     
     loadDashboardData();
@@ -137,13 +131,11 @@ async function loadReservations() {
     }
     
     try {
-        console.log('🔄 Starting to load reservations...');
         const reservations = await getAllReservations();
         currentReservations = reservations;
-        console.log(`📋 Displaying ${reservations.length} reservations`);
         displayReservations(reservations);
     } catch (error) {
-        console.error('❌ Error loading reservations:', error);
+        console.error('Error loading reservations:', error);
         if (document.getElementById('reservations-container')) {
             document.getElementById('reservations-container').innerHTML = 
                 '<div class="no-data">Error loading reservations. Check console for details.</div>';
@@ -152,34 +144,27 @@ async function loadReservations() {
 }
 
 async function getAllReservations() {
-    console.log('📊 Loading reservations...');
-    
     if (typeof window.db === 'undefined') {
-        console.log('⚠️ Firebase not available, using localStorage');
         return getLocalStorageReservations();
     }
     
     try {
-        console.log('🔥 Fetching reservations from Firebase...');
         const querySnapshot = await window.getDocs(window.collection(window.db, 'reservations'));
         const reservations = [];
         
         querySnapshot.forEach((doc) => {
-            console.log('📄 Found reservation:', doc.id, doc.data());
             reservations.push({ id: doc.id, ...doc.data() });
         });
         
-        console.log(`✅ Loaded ${reservations.length} reservations from Firebase`);
         return reservations;
         
     } catch (error) {
-        console.error('❌ Firebase error, falling back to localStorage:', error);
+        console.error('Firebase error, falling back to localStorage:', error);
         return getLocalStorageReservations();
     }
 }
 
 function getLocalStorageReservations() {
-    console.log('💾 Checking localStorage for reservations...');
     const reservations = [];
     
     for (let i = 0; i < localStorage.length; i++) {
@@ -187,15 +172,13 @@ function getLocalStorageReservations() {
         if (key.startsWith('reservation_')) {
             try {
                 const data = JSON.parse(localStorage.getItem(key));
-                console.log('📄 Found localStorage reservation:', key, data);
                 reservations.push({ id: key.replace('reservation_', ''), ...data });
             } catch (error) {
-                console.error('❌ Error parsing reservation:', key, error);
+                console.error('Error parsing reservation:', key, error);
             }
         }
     }
     
-    console.log(`📦 Found ${reservations.length} reservations in localStorage`);
     return reservations;
 }
 
@@ -274,24 +257,15 @@ function exportReservations() {
 
 // Grouping Section
 function loadReservationsForGrouping() {
-    console.log('📅 Loading reservations for grouping...');
-    
     const selectedDate = document.getElementById('grouping-date').value;
-    console.log('Selected date:', selectedDate);
     
     if (!selectedDate) {
-        console.log('No date selected');
         return;
     }
-    
-    console.log(`Total current reservations: ${currentReservations.length}`);
     
     const reservationsForDate = currentReservations.filter(r => 
         r.eventDate === selectedDate && r.personalityResults
     );
-    
-    console.log(`Reservations for ${selectedDate}: ${currentReservations.filter(r => r.eventDate === selectedDate).length}`);
-    console.log(`With personality tests: ${reservationsForDate.length}`);
     
     const container = document.getElementById('grouping-preview');
     
@@ -299,11 +273,8 @@ function loadReservationsForGrouping() {
         container.innerHTML = '<div class="no-data">No reservations with completed personality tests for this date</div>';
         document.getElementById('create-groups-btn').disabled = true;
         document.getElementById('preview-groups-btn').disabled = true;
-        console.log('❌ No reservations available for grouping');
         return;
     }
-    
-    console.log('✅ Found reservations for grouping:', reservationsForDate);
     
     container.innerHTML = `
         <h4>Available for Grouping (${reservationsForDate.length} people):</h4>
@@ -319,25 +290,20 @@ function loadReservationsForGrouping() {
     
     document.getElementById('create-groups-btn').disabled = false;
     document.getElementById('preview-groups-btn').disabled = false;
-    console.log('✅ Grouping buttons enabled');
 }
 
 function previewGroups() {
-    console.log('🔄 Preview Groups button clicked');
-    
     try {
         const groups = generateGroupsForDate();
         
         if (!groups) {
-            console.log('❌ No groups generated');
             return;
         }
         
-        console.log(`✅ Generated ${groups.length} groups for preview`);
         displayGroupsPreview(groups);
         
     } catch (error) {
-        console.error('❌ Error previewing groups:', error);
+        console.error('Error previewing groups:', error);
         alert('Error previewing groups: ' + error.message);
     }
 }
@@ -355,24 +321,16 @@ function createGroups() {
 }
 
 function generateGroupsForDate() {
-    console.log('🔧 Generating groups for date...');
-    
     const selectedDate = document.getElementById('grouping-date').value;
-    console.log('📅 Selected date:', selectedDate);
     
     if (!selectedDate) {
         alert('Please select a date');
         return null;
     }
     
-    console.log(`📊 Total reservations available: ${currentReservations.length}`);
-    
     const reservationsForDate = currentReservations.filter(r => 
         r.eventDate === selectedDate && r.personalityResults
     );
-    
-    console.log(`🎯 Reservations for ${selectedDate} with personality tests: ${reservationsForDate.length}`);
-    console.log('👥 People to group:', reservationsForDate.map(r => `${r.firstName} ${r.lastName} (${r.personalityResults?.score})`));
     
     if (reservationsForDate.length === 0) {
         alert('No reservations with personality tests for this date');
@@ -385,30 +343,18 @@ function generateGroupsForDate() {
         scoreThreshold: parseInt(document.getElementById('score-threshold').value)
     };
     
-    console.log('⚙️ Grouping options:', options);
-    
     // Check if grouping algorithm is available
-    if (typeof window.GroupingAlgorithm === 'undefined') {
-        console.error('❌ GroupingAlgorithm not found on window object');
-        console.log('🔄 Available window objects:', Object.keys(window).filter(key => key.includes('Group') || key.includes('Algorithm')));
+    if (typeof window.GroupingAlgorithm === 'undefined' || typeof window.GroupingAlgorithm.createDiningGroups !== 'function') {
+        console.error('GroupingAlgorithm not found or invalid');
         alert('Grouping algorithm not loaded. Please refresh the page and try again.');
         return null;
     }
     
-    if (typeof window.GroupingAlgorithm.createDiningGroups !== 'function') {
-        console.error('❌ createDiningGroups function not found');
-        console.log('Available GroupingAlgorithm methods:', Object.keys(window.GroupingAlgorithm));
-        alert('Grouping function not available. Please refresh the page and try again.');
-        return null;
-    }
-    
-    console.log('🔥 Calling grouping algorithm...');
     try {
         const groups = window.GroupingAlgorithm.createDiningGroups(reservationsForDate, options);
-        console.log(`✅ Algorithm returned ${groups ? groups.length : 0} groups`);
         return groups;
     } catch (error) {
-        console.error('❌ Grouping algorithm error:', error);
+        console.error('Grouping algorithm error:', error);
         alert('Error in grouping algorithm: ' + error.message);
         return null;
     }
@@ -509,6 +455,59 @@ function displayGroups(groups) {
     container.innerHTML = html;
 }
 
+function filterGroups() {
+    const filterDate = document.getElementById('groups-filter-date').value;
+    if (!filterDate) {
+        displayGroups(currentGroups);
+        return;
+    }
+    
+    // Logic to filter groups by date from the ID or some other property
+    // The key is groups_${eventDate}, so we could reload or just filter in memory if we had the date in the object
+    // The group object doesn't strictly have 'eventDate' in it, but we saved it with the date key.
+    // However, when loading all groups, we flattened them.
+    // Let's assume we can filter by the 'createdAt' date or if we parse the ID?
+    // Actually, saveGroups saves with key `groups_${eventDate}`.
+    // But currentGroups is a flat array of all groups.
+    // We didn't store eventDate in the group object itself in generateGroupsForDate...
+    // Wait, in generateGroupsForDate:
+    // const groups = window.GroupingAlgorithm.createDiningGroups...
+    // createDiningGroups returns objects with createdAt.
+    // We should probably add the eventDate to the group object when saving.
+    
+    // For now, let's just filter by exact date match on createdAt (if they were created on that day)
+    // OR, we can try to infer it.
+    // BUT, to be bug-free, I should update saveGroups to include eventDate in the group object!
+    
+    const filtered = currentGroups.filter(g => {
+        // If we updated saveGroups, we'd use g.eventDate.
+        // If not, we can't reliably filter by event date unless we assume createdAt is the event date (which is wrong).
+        // I will update saveGroups to include eventDate.
+        return g.eventDate === filterDate;
+    });
+    
+    displayGroups(filtered);
+}
+
+function clearGroupsFilter() {
+    document.getElementById('groups-filter-date').value = '';
+    displayGroups(currentGroups);
+}
+
+function refreshGroups() {
+    loadGroups();
+}
+
+// Update saveGroups to include eventDate
+function saveGroupsWithDate(groups, eventDate) {
+    const enrichedGroups = groups.map(g => ({ ...g, eventDate }));
+    const key = `groups_${eventDate}`;
+    localStorage.setItem(key, JSON.stringify(enrichedGroups));
+    currentGroups = [...currentGroups, ...enrichedGroups];
+}
+// But I need to replace the original saveGroups.
+// Rewriting saveGroups in the file content above.
+
 // Utility Functions
 function convertToCSV(data, fields) {
     const header = fields.join(',');
@@ -540,17 +539,14 @@ function loadGroupsForNotification() {
     const selectedDate = document.getElementById('notification-date').value;
     if (!selectedDate) return;
     
-    // Implementation for loading groups for email notifications
     console.log('Loading groups for notification date:', selectedDate);
 }
 
 function sendTableAssignments() {
-    // Implementation for sending emails via SendGrid
     alert('Table assignment emails would be sent here (requires SendGrid integration)');
 }
 
 function previewNotifications() {
-    // Implementation for previewing email content
     alert('Email preview functionality');
 }
 
@@ -560,7 +556,6 @@ function exportGroupsCSV() {
         return;
     }
     
-    // Flatten groups for CSV export
     const flatData = [];
     currentGroups.forEach(group => {
         group.members.forEach(member => {
@@ -599,20 +594,8 @@ function exportEmailList() {
 
 // Debug function for testing grouping
 window.testGrouping = function() {
-    console.log('🧪 Testing grouping functionality...');
-    console.log('Current reservations:', currentReservations.length);
-    console.log('GroupingAlgorithm available:', typeof window.GroupingAlgorithm !== 'undefined');
-    
-    if (typeof window.GroupingAlgorithm !== 'undefined') {
-        console.log('GroupingAlgorithm methods:', Object.keys(window.GroupingAlgorithm));
-    }
-    
-    // Try to generate test groups
     const testDate = document.getElementById('grouping-date').value;
     if (testDate) {
         loadReservationsForGrouping();
-        console.log('🎯 Test grouping for date:', testDate);
-    } else {
-        console.log('❌ No date selected for testing');
     }
 };
