@@ -824,7 +824,7 @@ async function sendTableAssignments() {
             console.log('Sending to:', member.email, templateParams);
 
             try {
-                await emailjs.send(serviceID, templateID, templateParams);
+                await emailjs.send(serviceID, templateID, templateParams, 'bBneJjbjP_6-Qzbpx');
                 console.log(`Email sent to ${member.email}`);
                 sentCount++;
             } catch (e) {
