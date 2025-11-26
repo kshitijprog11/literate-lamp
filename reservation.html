@@ -117,7 +117,7 @@
     <!-- Firebase SDK with your real config -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-        import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
         
         // Your real Firebase configuration
         const firebaseConfig = {
@@ -136,6 +136,8 @@
             window.db = db;
             window.addDoc = addDoc;
             window.collection = collection;
+            window.doc = doc;
+            window.updateDoc = updateDoc;
             console.log('✅ Firebase connected successfully for real data sharing');
         } catch (error) {
             console.warn('Firebase connection failed, using localStorage fallback:', error);

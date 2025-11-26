@@ -1,9 +1,16 @@
 // Admin Dashboard JavaScript
 let currentReservations = [];
 let currentGroups = [];
+let currentGeneratedGroups = null;
 const GROUPED_EVENTS_COLLECTION = 'grouped_events';
+let saveGroupsButton = null;
 
 document.addEventListener('DOMContentLoaded', function() {
+    saveGroupsButton = document.getElementById('save-groups-btn');
+    if (saveGroupsButton) {
+        saveGroupsButton.addEventListener('click', handleManualGroupsSave);
+    }
+
     // Try to initialize immediately if Firebase is ready
     if (typeof window.db !== 'undefined') {
         initializeDashboard();
@@ -267,6 +274,9 @@ function exportReservations() {
 function loadReservationsForGrouping() {
     const selectedDate = document.getElementById('grouping-date').value;
     
+    currentGeneratedGroups = null;
+    setSaveGroupsButtonDisabled(true);
+    
     if (!selectedDate) {
         return;
     }
@@ -362,6 +372,17 @@ function generateGroupsForDate(customOptions = {}) {
     try {
         const groups = window.GroupingAlgorithm.createDiningGroups(reservationsForDate, options);
         
+        if (groups && groups.length > 0) {
+            currentGeneratedGroups = {
+                date: selectedDate,
+                groups
+            };
+            setSaveGroupsButtonDisabled(false);
+        } else {
+            currentGeneratedGroups = null;
+            setSaveGroupsButtonDisabled(true);
+        }
+        
         if (autoSave) {
             autoSaveGeneratedGroups(selectedDate, groups);
         }
@@ -401,6 +422,44 @@ function displayGroupsPreview(groups) {
     `;
     
     container.innerHTML = html;
+}
+
+function setSaveGroupsButtonDisabled(disabled = true) {
+    if (saveGroupsButton) {
+        saveGroupsButton.disabled = disabled;
+    }
+}
+
+async function handleManualGroupsSave() {
+    if (!currentGeneratedGroups || !Array.isArray(currentGeneratedGroups.groups) || currentGeneratedGroups.groups.length === 0) {
+        alert('Generate groups before saving them to the database.');
+        return;
+    }
+
+    const eventDate = currentGeneratedGroups.date;
+    if (!eventDate) {
+        alert('Unable to determine the event date for these groups.');
+        return;
+    }
+
+    setSaveGroupsButtonDisabled(true);
+
+    try {
+        await saveGroups(currentGeneratedGroups.groups, eventDate);
+        alert('Groups saved successfully!');
+
+        const notificationDateInput = document.getElementById('notification-date');
+        if (notificationDateInput) {
+            notificationDateInput.value = eventDate;
+        }
+
+        showSection('notifications');
+        await loadGroupsForNotification();
+    } catch (error) {
+        console.error('Error saving groups manually:', error);
+        alert('Error saving groups: ' + error.message);
+        setSaveGroupsButtonDisabled(false);
+    }
 }
 
 // Groups Section
@@ -500,46 +559,33 @@ function fetchGroupsFromLocalStorage(eventDate) {
 }
 
 async function saveGroupsToFirestore(eventDate, groups) {
-    if (typeof window.db === 'undefined' || !window.collection || !window.addDoc) {
+    if (typeof window.db === 'undefined' || !window.doc || !window.setDoc) {
         return;
     }
     
-    const payload = {
-        date: eventDate,
-        groups,
-        createdAt: new Date().toISOString()
-    };
+    const timestamp = new Date().toISOString();
+    const docRef = window.doc(window.db, GROUPED_EVENTS_COLLECTION, eventDate);
+    let createdAtValue = timestamp;
+    
+    if (window.getDoc) {
+        try {
+            const existingSnapshot = await window.getDoc(docRef);
+            if (existingSnapshot.exists()) {
+                const existingData = existingSnapshot.data();
+                createdAtValue = existingData.createdAt || timestamp;
+            }
+        } catch (error) {
+            console.warn('Unable to read existing grouped event document:', error);
+        }
+    }
     
     try {
-        if (window.query && window.where && window.getDocs && window.doc && window.updateDoc) {
-            const collectionRef = window.collection(window.db, GROUPED_EVENTS_COLLECTION);
-            const queryByDate = window.query(
-                collectionRef,
-                window.where('date', '==', eventDate)
-            );
-            const snapshot = await window.getDocs(queryByDate);
-            
-            if (!snapshot.empty) {
-                const sortedDocs = snapshot.docs.sort((a, b) => {
-                    const aDate = new Date(a.data().createdAt || 0);
-                    const bDate = new Date(b.data().createdAt || 0);
-                    return bDate - aDate;
-                });
-                const existingDoc = sortedDocs[0];
-                const existingData = existingDoc.data();
-                const docRef = window.doc(window.db, GROUPED_EVENTS_COLLECTION, existingDoc.id);
-                
-                await window.updateDoc(docRef, {
-                    date: eventDate,
-                    groups,
-                    createdAt: existingData.createdAt || payload.createdAt,
-                    updatedAt: payload.createdAt
-                });
-                return;
-            }
-        }
-        
-        await window.addDoc(window.collection(window.db, GROUPED_EVENTS_COLLECTION), payload);
+        await window.setDoc(docRef, {
+            date: eventDate,
+            groups,
+            createdAt: createdAtValue,
+            updatedAt: timestamp
+        });
     } catch (error) {
         console.error('Error saving grouped event to Firestore:', error);
         throw error;
@@ -547,40 +593,28 @@ async function saveGroupsToFirestore(eventDate, groups) {
 }
 
 async function fetchGroupsFromFirestore(eventDate) {
-    if (typeof window.db === 'undefined' || !window.collection || !window.getDocs || !window.where) {
-        return null;
+    if (typeof window.db === 'undefined' || !window.doc || !window.getDoc) {
+        return [];
     }
     
     try {
-        const collectionRef = window.collection(window.db, GROUPED_EVENTS_COLLECTION);
-        const queryByDate = window.query(
-            collectionRef,
-            window.where('date', '==', eventDate)
-        );
-        const snapshot = await window.getDocs(queryByDate);
+        const docRef = window.doc(window.db, GROUPED_EVENTS_COLLECTION, eventDate);
+        const snapshot = await window.getDoc(docRef);
         
-        if (snapshot.empty) {
-            return null;
+        if (!snapshot.exists()) {
+            return [];
         }
         
-        const documents = snapshot.docs
-            .map(doc => ({ id: doc.id, ...doc.data() }))
-            .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-        
-        return documents[0].groups || [];
+        const data = snapshot.data();
+        return data?.groups || [];
     } catch (error) {
         console.error('Error fetching groups from Firestore:', error);
-        return null;
+        return [];
     }
 }
 
 async function fetchGroupsForDate(eventDate) {
-    const remoteGroups = await fetchGroupsFromFirestore(eventDate);
-    if (remoteGroups && remoteGroups.length > 0) {
-        return remoteGroups;
-    }
-    
-    return fetchGroupsFromLocalStorage(eventDate);
+    return fetchGroupsFromFirestore(eventDate);
 }
 
 function displayGroups(groups) {
@@ -749,6 +783,16 @@ async function sendTableAssignments() {
         alert('EmailJS not loaded. Cannot send emails.');
         return;
     }
+
+    // --- EMAILJS CONFIGURATION (HARDCODED FIX) ---
+    const serviceID = "service_xmmwg4f".trim();
+    const templateID = "template_0fln8lu".trim();
+    const publicKey = "bBneJjbjP_6-Qzbpx".trim();
+    
+    // Force initialization right before sending
+    emailjs.init(publicKey);
+    console.log("EmailJS Initialized with:", publicKey);
+    // ---------------------------------------------
     
     // Get date from notification date picker or fallback
     const dateStr = document.getElementById('notification-date').value || 'Upcoming Event';
@@ -763,25 +807,29 @@ async function sendTableAssignments() {
         return;
     }
 
-    const serviceID = 'YOUR_SERVICE_ID';
-    const templateID = 'YOUR_TABLE_ASSIGNMENT_TEMPLATE_ID';
-    
     let sentCount = 0;
     let errorCount = 0;
 
     alert('Sending emails... check console for progress.');
 
-    for (const group of currentGroups) {
+    for (let groupIndex = 0; groupIndex < currentGroups.length; groupIndex++) {
+        const group = currentGroups[groupIndex];
         for (const member of group.members) {
-             const templateParams = {
-                to_name: member.firstName + ' ' + member.lastName,
-                to_email: member.email,
-                table_number: group.tableAssignment,
-                event_date: group.eventDate || dateStr,
-                group_size: group.size,
-                companions: group.members.filter(m => m.email !== member.email).map(m => m.firstName).join(', ')
+            if (!member.email) {
+                console.error('Skipping member with missing email:', member);
+                errorCount++;
+                continue;
+            }
+
+            const templateParams = {
+                email: member.email,
+                name: member.firstName,
+                message: `You have been assigned to Table ${groupIndex + 1}`,
+                date: group.eventDate || dateStr
             };
-            
+
+            console.log('Sending to:', member.email, templateParams);
+
             try {
                 await emailjs.send(serviceID, templateID, templateParams);
                 console.log(`Email sent to ${member.email}`);

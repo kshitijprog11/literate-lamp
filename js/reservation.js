@@ -24,11 +24,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const finishButton = document.getElementById('finish-button');
     const finishButtonText = document.getElementById('finish-button-text');
     const finishSpinner = document.getElementById('finish-spinner');
+    const submitButtonText = document.getElementById('button-text');
+    const submitSpinner = document.getElementById('spinner');
     const editReservationButton = document.getElementById('edit-reservation-button');
     const summaryContainer = document.getElementById('personality-inline-summary');
 
     let currentStep = 'details';
     let pendingReservationData = null;
+    let currentReservationId = null;
 
     summaryElementRef = summaryContainer;
     finishButtonElement = finishButton;
@@ -40,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateAnsweredSummary(summaryElementRef, savedPersonalityAnswers);
 
     if (form) {
-        form.addEventListener('submit', (event) => {
+        form.addEventListener('submit', async (event) => {
             event.preventDefault();
 
             if (currentStep !== 'details') {
@@ -71,12 +74,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 paymentStatus: 'pending'
             };
 
-            currentStep = 'personality';
-            showPersonalityStep(reservationDetailsSection, personalityTestSection);
-            window.scrollTo({
-                top: personalityTestSection ? personalityTestSection.offsetTop - 40 : 0,
-                behavior: 'smooth'
-            });
+            toggleSubmitButtonState(true, submitButton, submitSpinner, submitButtonText);
+
+            try {
+                let reservationIdToUse = currentReservationId;
+
+                if (reservationIdToUse) {
+                    await updateReservationRecord(reservationIdToUse, pendingReservationData);
+                } else {
+                    reservationIdToUse = await saveReservation(pendingReservationData);
+                    currentReservationId = reservationIdToUse;
+                    try {
+                        localStorage.setItem('currentReservationId', reservationIdToUse);
+                    } catch (storageError) {
+                        console.warn('Unable to persist reservation id to localStorage:', storageError);
+                    }
+                }
+
+                pendingReservationData.reservationId = reservationIdToUse;
+
+                currentStep = 'personality';
+                showPersonalityStep(reservationDetailsSection, personalityTestSection);
+                window.scrollTo({
+                    top: personalityTestSection ? personalityTestSection.offsetTop - 40 : 0,
+                    behavior: 'smooth'
+                });
+            } catch (error) {
+                console.error('Error creating reservation:', error);
+                alert('Error: ' + error.message);
+                pendingReservationData = null;
+            } finally {
+                toggleSubmitButtonState(false, submitButton, submitSpinner, submitButtonText);
+            }
         });
     }
 
@@ -93,13 +122,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const score = calculatePersonalityScore(answerIndices);
-            const personality = determinePersonalityType(score);
+            const totalScore = calculatePersonalityScore(answerIndices);
+            const personality = determinePersonalityType(totalScore);
             const answerSummary = buildPersonalityAnswerSummary(answerIndices);
 
-            const reservationPayload = {
-                ...pendingReservationData,
-                personalityScore: score,
+            const reservationUpdates = {
+                personalityScore: totalScore,
                 personalityProfile: personality.type,
                 personalityDetails: {
                     description: personality.description,
@@ -107,17 +135,50 @@ document.addEventListener('DOMContentLoaded', () => {
                     answers: answerSummary
                 },
                 completedPersonalityAt: new Date().toISOString(),
+                personalityTestStatus: 'Completed',
                 status: 'confirmed'
             };
+
+            let storedReservationId = null;
+            try {
+                storedReservationId = localStorage.getItem('currentReservationId');
+            } catch (storageError) {
+                console.warn('Unable to read reservation id from localStorage:', storageError);
+            }
+
+            console.log('Attempting to update Reservation ID:', storedReservationId);
+
+            if (!storedReservationId) {
+                alert('Error: Could not link test to reservation.');
+                return;
+            }
 
             toggleFinishButtonState(true, finishButton, finishSpinner, finishButtonText);
 
             try {
-                const reservationId = await saveReservation(reservationPayload);
-                await sendConfirmationEmail(reservationPayload);
+                await updateReservationRecord(storedReservationId, reservationUpdates);
 
-                sessionStorage.setItem('reservationId', reservationId);
-                sessionStorage.setItem('reservationData', JSON.stringify(reservationPayload));
+                const finalizedReservation = {
+                    ...pendingReservationData,
+                    ...reservationUpdates
+                };
+
+                pendingReservationData = finalizedReservation;
+
+                await sendConfirmationEmail(finalizedReservation);
+
+                sessionStorage.setItem('reservationId', storedReservationId);
+                sessionStorage.setItem('reservationData', JSON.stringify(finalizedReservation));
+                sessionStorage.setItem('personalityResults', JSON.stringify({
+                    personality,
+                    answers: answerSummary
+                }));
+
+                try {
+                    localStorage.removeItem('currentReservationId');
+                } catch (clearError) {
+                    console.warn('Unable to clear reservation id from localStorage:', clearError);
+                }
 
                 window.location.href = 'confirmation.html';
             } catch (error) {
@@ -213,6 +274,41 @@ async function saveReservation(reservationData) {
     } catch (e) {
         throw new Error('Could not save reservation locally. Please check your browser settings.');
     }
+}
+
+async function updateReservationRecord(reservationId, updateData) {
+    if (!reservationId) {
+        throw new Error('Reservation ID is required for updates');
+    }
+
+    if (!window.FAST_TESTING_MODE && typeof window.db !== 'undefined' && window.doc && window.updateDoc) {
+        try {
+            const reservationRef = window.doc(window.db, 'reservations', reservationId);
+            await window.updateDoc(reservationRef, updateData);
+            return;
+        } catch (error) {
+            console.warn('Database update failed, falling back to local storage:', error.message);
+        }
+    }
+
+    const storageKey = 'reservation_' + reservationId;
+
+    try {
+        const existingReservation = localStorage.getItem(storageKey);
+        if (existingReservation) {
+            const parsedReservation = JSON.parse(existingReservation);
+            const mergedReservation = {
+                ...parsedReservation,
+                ...updateData
+            };
+            localStorage.setItem(storageKey, JSON.stringify(mergedReservation));
+            return;
+        }
+    } catch (storageError) {
+        throw new Error('Could not update reservation locally. Please check your browser settings.');
+    }
+
+    throw new Error('Reservation record not found for update.');
 }
 
 function setMinimumReservationDate() {
@@ -433,6 +529,22 @@ function toggleFinishButtonState(isLoading, button, spinner, textElement) {
 
     if (textElement) {
         textElement.textContent = isLoading ? 'Booking...' : 'Finish & Book';
+    }
+}
+
+function toggleSubmitButtonState(isLoading, button, spinner, textElement) {
+    if (!button) {
+        return;
+    }
+
+    button.disabled = isLoading;
+
+    if (spinner) {
+        spinner.classList.toggle('hidden', !isLoading);
+    }
+
+    if (textElement) {
+        textElement.textContent = isLoading ? 'Saving...' : 'Confirm Reservation';
     }
 }
 
