@@ -797,8 +797,8 @@ async function sendTableAssignments() {
         return;
     }
 
-    const serviceID = 'YOUR_SERVICE_ID';
-    const templateID = 'YOUR_TABLE_ASSIGNMENT_TEMPLATE_ID';
+    const serviceID = 'service_xmmwg4f';
+    const templateID = 'template_0fln8lu';
     
     let sentCount = 0;
     let errorCount = 0;
