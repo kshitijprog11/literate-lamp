@@ -1,5 +1,17 @@
 import { personalityQuestions, calculatePersonalityScore, determinePersonalityType, buildPersonalityAnswerSummary } from './personality-test.js';
 
+const totalPersonalityQuestions = personalityQuestions.length;
+let currentQuestionIndex = 0;
+const savedPersonalityAnswers = new Array(totalPersonalityQuestions).fill(null);
+
+let questionContentElement = null;
+let questionCounterElement = null;
+let progressFillElement = null;
+let previousButtonElement = null;
+let nextButtonElement = null;
+let summaryElementRef = null;
+let finishButtonElement = null;
+
 // Reservation form functionality
 document.addEventListener('DOMContentLoaded', () => {
     setMinimumReservationDate();
@@ -18,13 +30,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentStep = 'details';
     let pendingReservationData = null;
 
-    renderPersonalityQuestions(questionsContainer);
-    updateAnsweredSummary(questionsContainer, summaryContainer);
-    if (questionsContainer) {
-        questionsContainer.addEventListener('change', () => {
-            updateAnsweredSummary(questionsContainer, summaryContainer);
-        });
+    summaryElementRef = summaryContainer;
+    finishButtonElement = finishButton;
+    if (finishButtonElement) {
+        finishButtonElement.style.display = 'none';
     }
+
+    renderPersonalityQuestions(questionsContainer);
+    updateAnsweredSummary(summaryElementRef, savedPersonalityAnswers);
 
     if (form) {
         form.addEventListener('submit', (event) => {
@@ -74,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const answerIndices = collectAnswerIndices(questionsContainer);
+            const answerIndices = collectAnswerIndices(savedPersonalityAnswers);
             if (!answerIndices) {
                 alert('Please answer every question to finish your booking.');
                 return;
@@ -215,50 +228,171 @@ function renderPersonalityQuestions(container) {
         return;
     }
 
-    container.innerHTML = personalityQuestions.map((question, questionIndex) => `
-        <div class="personality-question" data-question="${questionIndex}">
-            <h3>Question ${questionIndex + 1}</h3>
-            <p>${question.text}</p>
+    container.innerHTML = `
+        <div class="personality-progress">
+            <div class="personality-progress-fill" id="personality-progress-fill"></div>
+        </div>
+        <div id="personality-question-counter" class="personality-question-counter"></div>
+        <div id="personality-question-content"></div>
+        <div class="test-navigation">
+            <button type="button" id="personality-prev" class="nav-button secondary-button">Previous</button>
+            <button type="button" id="personality-next" class="nav-button submit-button">Next</button>
+        </div>
+    `;
+
+    questionContentElement = container.querySelector('#personality-question-content');
+    questionCounterElement = container.querySelector('#personality-question-counter');
+    progressFillElement = container.querySelector('#personality-progress-fill');
+    previousButtonElement = container.querySelector('#personality-prev');
+    nextButtonElement = container.querySelector('#personality-next');
+
+    if (questionContentElement) {
+        questionContentElement.addEventListener('change', handleOptionChange);
+    }
+
+    if (previousButtonElement) {
+        previousButtonElement.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                renderQuestion(currentQuestionIndex - 1);
+            }
+        });
+    }
+
+    if (nextButtonElement) {
+        nextButtonElement.addEventListener('click', () => {
+            if (savedPersonalityAnswers[currentQuestionIndex] === null) {
+                showSelectionRequiredMessage();
+                return;
+            }
+
+            if (currentQuestionIndex < totalPersonalityQuestions - 1) {
+                renderQuestion(currentQuestionIndex + 1);
+            }
+        });
+    }
+
+    renderQuestion(0);
+}
+
+function renderQuestion(index) {
+    if (!questionContentElement || index < 0 || index >= totalPersonalityQuestions) {
+        return;
+    }
+
+    currentQuestionIndex = index;
+    const question = personalityQuestions[index];
+
+    if (questionCounterElement) {
+        questionCounterElement.textContent = `Question ${index + 1} of ${totalPersonalityQuestions}`;
+    }
+
+    if (progressFillElement) {
+        const denominator = Math.max(totalPersonalityQuestions - 1, 1);
+        const progressPercent = (index / denominator) * 100;
+        progressFillElement.style.width = `${progressPercent}%`;
+    }
+
+    questionContentElement.innerHTML = `
+        <div class="personality-question-card" data-question="${index}">
+            <h3 class="personality-question-title">${question.text}</h3>
             <div class="personality-options">
                 ${question.options.map((option, optionIndex) => `
-                    <label class="personality-option">
+                    <label class="personality-option-card option" data-option-index="${optionIndex}">
                         <input 
                             type="radio" 
-                            name="personality-question-${questionIndex}" 
+                            class="personality-option-input" 
+                            name="personality-question-${index}" 
                             value="${optionIndex}" 
-                            data-question-index="${questionIndex}"
-                            required
+                            data-question-index="${index}"
                         >
-                        <span>${option.text}</span>
+                        <span class="personality-option-text">${option.text}</span>
                     </label>
                 `).join('')}
             </div>
         </div>
-    `).join('');
-}
+    `;
 
-function collectAnswerIndices(container) {
-    if (!container) {
-        return null;
-    }
-
-    const answers = [];
-    for (let i = 0; i < personalityQuestions.length; i++) {
-        const selected = container.querySelector(`input[name="personality-question-${i}"]:checked`);
-        if (!selected) {
-            return null;
+    const savedValue = savedPersonalityAnswers[index];
+    if (typeof savedValue === 'number') {
+        const savedInput = questionContentElement.querySelector(`input[value="${savedValue}"]`);
+        if (savedInput) {
+            savedInput.checked = true;
+            updateOptionCardState(savedValue);
         }
-        answers.push(Number(selected.value));
+    } else {
+        updateOptionCardState(null);
     }
-    return answers;
+
+    updateNavigationState();
 }
 
-function updateAnsweredSummary(container, summaryElement) {
-    if (!container || !summaryElement) {
+function handleOptionChange(event) {
+    const target = event.target;
+    if (!target.classList.contains('personality-option-input')) {
         return;
     }
 
-    const answered = container.querySelectorAll('input[type="radio"]:checked').length;
+    const questionIndex = Number(target.dataset.questionIndex);
+    const selectedValue = Number(target.value);
+    savedPersonalityAnswers[questionIndex] = selectedValue;
+
+    updateOptionCardState(selectedValue);
+    updateAnsweredSummary(summaryElementRef, savedPersonalityAnswers);
+}
+
+function updateOptionCardState(selectedValue) {
+    if (!questionContentElement) {
+        return;
+    }
+
+    const optionCards = questionContentElement.querySelectorAll('.personality-option-card');
+    optionCards.forEach(card => {
+        const optionIndex = Number(card.dataset.optionIndex);
+        card.classList.toggle('selected', selectedValue !== null && optionIndex === selectedValue);
+    });
+}
+
+function updateNavigationState() {
+    if (previousButtonElement) {
+        previousButtonElement.style.visibility = currentQuestionIndex === 0 ? 'hidden' : 'visible';
+    }
+
+    if (nextButtonElement) {
+        nextButtonElement.style.display = currentQuestionIndex === totalPersonalityQuestions - 1 ? 'none' : '';
+    }
+
+    if (finishButtonElement) {
+        finishButtonElement.style.display = currentQuestionIndex === totalPersonalityQuestions - 1 ? '' : 'none';
+    }
+}
+
+function showSelectionRequiredMessage() {
+    if (summaryElementRef) {
+        summaryElementRef.textContent = 'Please select an option before continuing.';
+        return;
+    }
+
+    alert('Please select an option before continuing.');
+}
+
+function collectAnswerIndices(answers) {
+    if (!Array.isArray(answers) || answers.length !== personalityQuestions.length) {
+        return null;
+    }
+
+    if (answers.some(answer => answer === null || typeof answer === 'undefined')) {
+        return null;
+    }
+
+    return answers.map(Number);
+}
+
+function updateAnsweredSummary(summaryElement, answers) {
+    if (!summaryElement || !answers) {
+        return;
+    }
+
+    const answered = answers.filter(answer => answer !== null).length;
     const total = personalityQuestions.length;
 
     if (answered === total) {
