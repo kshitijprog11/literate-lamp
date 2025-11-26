@@ -413,6 +413,7 @@
             <div class="action-buttons">
                 <button onclick="createGroups()" class="btn-primary" id="create-groups-btn" disabled>Create Groups</button>
                 <button onclick="previewGroups()" class="btn-secondary" id="preview-groups-btn" disabled>Preview Groups</button>
+                <button type="button" class="btn-secondary" id="save-groups-btn" disabled>Save Groups to Database</button>
             </div>
         </div>
         
@@ -465,7 +466,7 @@
     <!-- Firebase SDK with your real config -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-        import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, query, where, orderBy, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
         
         // Your real Firebase configuration
         const firebaseConfig = {
@@ -492,6 +493,8 @@
             window.query = query;
             window.where = where;
             window.orderBy = orderBy;
+            window.setDoc = setDoc;
+            window.getDoc = getDoc;
             
             console.log('Admin Dashboard connected to Firebase');
             
