@@ -111,11 +111,18 @@ function loadRecentActivity() {
     
     const html = recentReservations.map(reservation => {
         const date = new Date(reservation.createdAt).toLocaleDateString();
-        const testStatus = reservation.personalityResults ? 'Completed' : 'Pending';
+        const testStatus = reservation.personalityTestStatus || 'Pending';
+        const isCompleted = testStatus === 'Completed';
+        const statusColor = isCompleted ? '#2e7d32' : '#c47c00';
         return `
             <div class="activity-item" style="padding: 10px; border-bottom: 1px solid #f0f0f0;">
                 <strong>${reservation.firstName} ${reservation.lastName}</strong> made a reservation for ${reservation.eventDate}
-                <br><small>Created: ${date} | Test: ${testStatus}</small>
+                <br><small>
+                    Created: ${date} | 
+                    <span class="activity-test-status" style="color: ${statusColor}; font-weight: 600;">
+                        Test: ${testStatus}
+                    </span>
+                </small>
             </div>
         `;
     }).join('');

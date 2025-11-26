@@ -211,6 +211,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (window.FAST_TESTING_MODE || typeof window.db === 'undefined' || typeof window.updateDoc === 'undefined') {
                 const reservationData = JSON.parse(localStorage.getItem('reservation_' + reservationId) || '{}');
                 reservationData.personalityResults = results;
+                reservationData.personalityTestStatus = 'Completed';
+                reservationData.status = 'Confirmed';
                 reservationData.updatedAt = new Date().toISOString();
                 localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
                 return;
@@ -221,6 +223,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add 3-second timeout for Firebase
                 const updatePromise = window.updateDoc(window.doc(window.db, 'reservations', reservationId), {
                     personalityResults: results,
+                    personalityTestStatus: 'Completed',
+                    status: 'Confirmed',
                     updatedAt: new Date().toISOString()
                 });
                 const timeoutPromise = new Promise((_, reject) => 
@@ -233,6 +237,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.warn('Firebase save failed, using localStorage fallback:', firebaseError.message);
                 const reservationData = JSON.parse(localStorage.getItem('reservation_' + reservationId) || '{}');
                 reservationData.personalityResults = results;
+                reservationData.personalityTestStatus = 'Completed';
+                reservationData.status = 'Confirmed';
                 reservationData.updatedAt = new Date().toISOString();
                 localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
             }
