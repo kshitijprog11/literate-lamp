@@ -805,17 +805,24 @@ async function sendTableAssignments() {
 
     alert('Sending emails... check console for progress.');
 
-    for (const group of currentGroups) {
+    for (let groupIndex = 0; groupIndex < currentGroups.length; groupIndex++) {
+        const group = currentGroups[groupIndex];
         for (const member of group.members) {
-             const templateParams = {
-                to_name: member.firstName + ' ' + member.lastName,
-                to_email: member.email,
-                table_number: group.tableAssignment,
-                event_date: group.eventDate || dateStr,
-                group_size: group.size,
-                companions: group.members.filter(m => m.email !== member.email).map(m => m.firstName).join(', ')
+            if (!member.email) {
+                console.error('Skipping member with missing email:', member);
+                errorCount++;
+                continue;
+            }
+
+            const templateParams = {
+                email: member.email,
+                name: member.firstName,
+                message: `You have been assigned to Table ${groupIndex + 1}`,
+                date: group.eventDate || dateStr
             };
-            
+
+            console.log('Sending to:', member.email, templateParams);
+
             try {
                 await emailjs.send(serviceID, templateID, templateParams);
                 console.log(`Email sent to ${member.email}`);
