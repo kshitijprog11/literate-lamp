@@ -8,6 +8,8 @@
  * @returns {Array} Array of groups, each containing user objects
  */
 function createDiningGroups(users, options = {}) {
+    const { eventDate = null, ...configOverrides } = options;
+    
     // Default configuration
     const config = {
         minGroupSize: 2,
@@ -15,7 +17,7 @@ function createDiningGroups(users, options = {}) {
         idealGroupSize: 6,
         scoreThreshold: 10, // Maximum score difference within a group
         diversityFactor: 0.2, // 0 = strict matching, 1 = random
-        ...options
+        ...configOverrides
     };
     
     // Validate input
@@ -56,7 +58,8 @@ function createDiningGroups(users, options = {}) {
         averageScore: calculateAverageScore(group),
         scoreRange: calculateScoreRange(group),
         createdAt: new Date().toISOString(),
-        tableAssignment: `Table ${index + 1}`
+        tableAssignment: `Table ${index + 1}`,
+        eventDate
     }));
     
     return finalGroups;

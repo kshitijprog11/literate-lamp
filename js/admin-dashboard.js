@@ -1,6 +1,7 @@
 // Admin Dashboard JavaScript
 let currentReservations = [];
 let currentGroups = [];
+const GROUPED_EVENTS_COLLECTION = 'grouped_events';
 
 document.addEventListener('DOMContentLoaded', function() {
     // Try to initialize immediately if Firebase is ready
@@ -309,18 +310,17 @@ function previewGroups() {
 }
 
 function createGroups() {
-    const groups = generateGroupsForDate();
+    const groups = generateGroupsForDate({ autoSave: true });
     if (!groups) return;
     
-    // Save groups to storage
-    saveGroups(groups);
     alert('Groups created successfully!');
     
     // Switch to groups view
     showSection('groups');
 }
 
-function generateGroupsForDate() {
+function generateGroupsForDate(customOptions = {}) {
+    const { autoSave = false, ...overrideOptions } = customOptions;
     const selectedDate = document.getElementById('grouping-date').value;
     
     if (!selectedDate) {
@@ -340,7 +340,9 @@ function generateGroupsForDate() {
     const options = {
         minGroupSize: parseInt(document.getElementById('min-group-size').value),
         maxGroupSize: parseInt(document.getElementById('max-group-size').value),
-        scoreThreshold: parseInt(document.getElementById('score-threshold').value)
+        scoreThreshold: parseInt(document.getElementById('score-threshold').value),
+        eventDate: selectedDate,
+        ...overrideOptions
     };
     
     // Check if grouping algorithm is available
@@ -352,6 +354,11 @@ function generateGroupsForDate() {
     
     try {
         const groups = window.GroupingAlgorithm.createDiningGroups(reservationsForDate, options);
+        
+        if (autoSave) {
+            autoSaveGeneratedGroups(selectedDate, groups);
+        }
+        
         return groups;
     } catch (error) {
         console.error('Grouping algorithm error:', error);
@@ -417,11 +424,156 @@ async function getAllGroups() {
     return groups;
 }
 
-function saveGroups(groups) {
-    const eventDate = document.getElementById('grouping-date').value;
+function autoSaveGeneratedGroups(eventDate, groups) {
+    if (!groups || groups.length === 0) {
+        return;
+    }
+    
+    saveGroups(groups, eventDate).catch(error => {
+        console.error('Auto-save groups failed:', error);
+    });
+}
+
+async function saveGroups(groups, eventDateOverride) {
+    if (!groups || groups.length === 0) {
+        console.warn('No groups provided to save.');
+        return;
+    }
+    
+    const eventDate = eventDateOverride || document.getElementById('grouping-date')?.value;
+    
+    if (!eventDate) {
+        console.warn('Cannot save groups without an event date.');
+        return;
+    }
+    
+    const enrichedGroups = groups.map(group => ({
+        ...group,
+        eventDate: group.eventDate || eventDate
+    }));
+    
+    saveGroupsToLocalStorage(enrichedGroups, eventDate);
+    
+    // Replace existing groups for this date in memory to keep state in sync
+    currentGroups = [
+        ...currentGroups.filter(group => group.eventDate !== eventDate),
+        ...enrichedGroups
+    ];
+    
+    try {
+        await saveGroupsToFirestore(eventDate, enrichedGroups);
+    } catch (error) {
+        console.error('Failed to persist groups to Firestore:', error);
+    }
+}
+
+function saveGroupsToLocalStorage(groups, eventDate) {
     const key = `groups_${eventDate}`;
-    localStorage.setItem(key, JSON.stringify(groups));
-    currentGroups = [...currentGroups, ...groups];
+    try {
+        localStorage.setItem(key, JSON.stringify(groups));
+    } catch (error) {
+        console.error('Error saving groups to localStorage:', error);
+    }
+}
+
+function fetchGroupsFromLocalStorage(eventDate) {
+    const key = `groups_${eventDate}`;
+    const storedGroups = localStorage.getItem(key);
+    
+    if (!storedGroups) {
+        return [];
+    }
+    
+    try {
+        return JSON.parse(storedGroups);
+    } catch (error) {
+        console.error('Error parsing local groups for date:', eventDate, error);
+        return [];
+    }
+}
+
+async function saveGroupsToFirestore(eventDate, groups) {
+    if (typeof window.db === 'undefined' || !window.collection || !window.addDoc) {
+        return;
+    }
+    
+    const payload = {
+        date: eventDate,
+        groups,
+        createdAt: new Date().toISOString()
+    };
+    
+    try {
+        if (window.query && window.where && window.getDocs && window.doc && window.updateDoc) {
+            const collectionRef = window.collection(window.db, GROUPED_EVENTS_COLLECTION);
+            const queryByDate = window.query(
+                collectionRef,
+                window.where('date', '==', eventDate)
+            );
+            const snapshot = await window.getDocs(queryByDate);
+            
+            if (!snapshot.empty) {
+                const sortedDocs = snapshot.docs.sort((a, b) => {
+                    const aDate = new Date(a.data().createdAt || 0);
+                    const bDate = new Date(b.data().createdAt || 0);
+                    return bDate - aDate;
+                });
+                const existingDoc = sortedDocs[0];
+                const existingData = existingDoc.data();
+                const docRef = window.doc(window.db, GROUPED_EVENTS_COLLECTION, existingDoc.id);
+                
+                await window.updateDoc(docRef, {
+                    date: eventDate,
+                    groups,
+                    createdAt: existingData.createdAt || payload.createdAt,
+                    updatedAt: payload.createdAt
+                });
+                return;
+            }
+        }
+        
+        await window.addDoc(window.collection(window.db, GROUPED_EVENTS_COLLECTION), payload);
+    } catch (error) {
+        console.error('Error saving grouped event to Firestore:', error);
+        throw error;
+    }
+}
+
+async function fetchGroupsFromFirestore(eventDate) {
+    if (typeof window.db === 'undefined' || !window.collection || !window.getDocs || !window.where) {
+        return null;
+    }
+    
+    try {
+        const collectionRef = window.collection(window.db, GROUPED_EVENTS_COLLECTION);
+        const queryByDate = window.query(
+            collectionRef,
+            window.where('date', '==', eventDate)
+        );
+        const snapshot = await window.getDocs(queryByDate);
+        
+        if (snapshot.empty) {
+            return null;
+        }
+        
+        const documents = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        
+        return documents[0].groups || [];
+    } catch (error) {
+        console.error('Error fetching groups from Firestore:', error);
+        return null;
+    }
+}
+
+async function fetchGroupsForDate(eventDate) {
+    const remoteGroups = await fetchGroupsFromFirestore(eventDate);
+    if (remoteGroups && remoteGroups.length > 0) {
+        return remoteGroups;
+    }
+    
+    return fetchGroupsFromLocalStorage(eventDate);
 }
 
 function displayGroups(groups) {
@@ -436,7 +588,7 @@ function displayGroups(groups) {
         <div class="group-container">
             <div class="group-header">
                 <span>${group.tableAssignment} (${group.size} people)</span>
-                <span>Created: ${new Date(group.createdAt).toLocaleDateString()}</span>
+                <span>Event: ${group.eventDate || 'Unknown'} | Created: ${new Date(group.createdAt).toLocaleDateString()}</span>
             </div>
             <div class="group-members">
                 ${group.members.map(member => `
@@ -462,29 +614,7 @@ function filterGroups() {
         return;
     }
     
-    // Logic to filter groups by date from the ID or some other property
-    // The key is groups_${eventDate}, so we could reload or just filter in memory if we had the date in the object
-    // The group object doesn't strictly have 'eventDate' in it, but we saved it with the date key.
-    // However, when loading all groups, we flattened them.
-    // Let's assume we can filter by the 'createdAt' date or if we parse the ID?
-    // Actually, saveGroups saves with key `groups_${eventDate}`.
-    // But currentGroups is a flat array of all groups.
-    // We didn't store eventDate in the group object itself in generateGroupsForDate...
-    // Wait, in generateGroupsForDate:
-    // const groups = window.GroupingAlgorithm.createDiningGroups...
-    // createDiningGroups returns objects with createdAt.
-    // We should probably add the eventDate to the group object when saving.
-    
-    // For now, let's just filter by exact date match on createdAt (if they were created on that day)
-    // OR, we can try to infer it.
-    // BUT, to be bug-free, I should update saveGroups to include eventDate in the group object!
-    
-    const filtered = currentGroups.filter(g => {
-        // If we updated saveGroups, we'd use g.eventDate.
-        // If not, we can't reliably filter by event date unless we assume createdAt is the event date (which is wrong).
-        // I will update saveGroups to include eventDate.
-        return g.eventDate === filterDate;
-    });
+    const filtered = currentGroups.filter(g => g.eventDate === filterDate);
     
     displayGroups(filtered);
 }
@@ -535,11 +665,76 @@ function downloadCSV(csv, filename) {
 }
 
 // Notification functions (placeholder for SendGrid integration)
-function loadGroupsForNotification() {
+async function loadGroupsForNotification() {
     const selectedDate = document.getElementById('notification-date').value;
-    if (!selectedDate) return;
+    const previewContainer = document.getElementById('notification-preview');
     
-    console.log('Loading groups for notification date:', selectedDate);
+    if (!selectedDate) {
+        previewContainer.innerHTML = '<p>Select an event date to see groups that can receive table assignment emails.</p>';
+        setNotificationButtonsDisabled(true);
+        currentGroups = [];
+        return;
+    }
+    
+    console.log('Searching for groups on date:', selectedDate);
+    previewContainer.innerHTML = '<div class="loading">Searching for groups...</div>';
+    setNotificationButtonsDisabled(true);
+    
+    const groups = await fetchGroupsForDate(selectedDate);
+    
+    if (!groups || groups.length === 0) {
+        previewContainer.innerHTML = '<div class="no-data">No groups found for this date. Generate groups first in the Create Groups tab.</div>';
+        currentGroups = [];
+        return;
+    }
+    
+    currentGroups = groups;
+    renderNotificationPreview(groups, selectedDate);
+    setNotificationButtonsDisabled(false);
+}
+
+function renderNotificationPreview(groups, eventDate) {
+    const previewContainer = document.getElementById('notification-preview');
+    const totalGuests = groups.reduce((sum, group) => sum + (group.members?.length || 0), 0);
+    
+    const html = `
+        <h4>${groups.length} groups ready for ${eventDate}</h4>
+        <p>${totalGuests} guests will receive table assignments.</p>
+        ${groups.map(group => `
+            <div class="group-container">
+                <div class="group-header">
+                    <span>${group.tableAssignment} (${group.size} people)</span>
+                    <span>Avg Score: ${group.averageScore}</span>
+                </div>
+                <div class="group-members">
+                    ${group.members.map(member => `
+                        <div class="member-item">
+                            <div class="member-info">
+                                <strong>${member.firstName} ${member.lastName}</strong><br>
+                                <small>${member.email}</small>
+                            </div>
+                            <div class="member-score">${member.personalityResults?.score || 'N/A'}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('')}
+    `;
+    
+    previewContainer.innerHTML = html;
+}
+
+function setNotificationButtonsDisabled(disabled) {
+    const sendButton = document.getElementById('send-notifications-btn');
+    const previewButton = document.getElementById('preview-notifications-btn');
+    
+    if (sendButton) {
+        sendButton.disabled = disabled;
+    }
+    
+    if (previewButton) {
+        previewButton.disabled = disabled;
+    }
 }
 
 async function sendTableAssignments() {
