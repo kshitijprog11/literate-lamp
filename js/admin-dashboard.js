@@ -783,6 +783,16 @@ async function sendTableAssignments() {
         alert('EmailJS not loaded. Cannot send emails.');
         return;
     }
+
+    // --- EMAILJS CONFIGURATION (HARDCODED FIX) ---
+    const serviceID = "service_xmmwg4f".trim();
+    const templateID = "template_0fln8lu".trim();
+    const publicKey = "bBneJjbjP_6-Qzbpx".trim();
+    
+    // Force initialization right before sending
+    emailjs.init(publicKey);
+    console.log("EmailJS Initialized with:", publicKey);
+    // ---------------------------------------------
     
     // Get date from notification date picker or fallback
     const dateStr = document.getElementById('notification-date').value || 'Upcoming Event';
@@ -797,9 +807,6 @@ async function sendTableAssignments() {
         return;
     }
 
-    const serviceID = 'service_xmmwg4f';
-    const templateID = 'template_0fln8lu';
-    
     let sentCount = 0;
     let errorCount = 0;
 
@@ -824,7 +831,7 @@ async function sendTableAssignments() {
             console.log('Sending to:', member.email, templateParams);
 
             try {
-                await emailjs.send(serviceID, templateID, templateParams, 'bBneJjbjP_6-Qzbpx');
+                await emailjs.send(serviceID, templateID, templateParams);
                 console.log(`Email sent to ${member.email}`);
                 sentCount++;
             } catch (e) {
