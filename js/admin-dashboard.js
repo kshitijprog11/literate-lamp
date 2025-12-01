@@ -750,9 +750,14 @@ async function sendTableAssignments() {
     const templateID = "template_weyao6t"; 
     const publicKey = "bBneJjbjP_6-Qzbpx";
 
-    // 1. Init
+    // 1. Init (already initialized in HTML head, but ensure it's ready)
     if (typeof emailjs === 'undefined') { alert('EmailJS not loaded'); return; }
-    emailjs.init(publicKey);
+    // Re-init to ensure public key is set (in case HTML init didn't run)
+    try {
+        emailjs.init(publicKey);
+    } catch (e) {
+        console.warn('EmailJS init warning:', e);
+    }
 
     // 2. Validation
     const dateStr = document.getElementById('notification-date').value || 'Upcoming Event';
@@ -797,8 +802,8 @@ async function sendTableAssignments() {
                     params
                 });
                 
-                // Send with publicKey as 4th parameter (EmailJS v3 requirement)
-                const response = await emailjs.send(serviceID, templateID, params, publicKey);
+                // Send (publicKey already initialized globally)
+                const response = await emailjs.send(serviceID, templateID, params);
                 console.log(`✅ Sent to ${member.email}`, response);
                 sent++;
             } catch (e) {
