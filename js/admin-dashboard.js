@@ -745,18 +745,38 @@ function setNotificationButtonsDisabled(disabled) {
 }
 
 async function sendTableAssignments() {
-    // 1. CONFIGURATION
-    const serviceID = "service_xmmwg4f";
-    const templateID = "template_weyao6t"; 
-    const publicKey = "bBneJjbjP_6-Qzbpx";
+    // 1. CONFIGURATION - Trim to remove any hidden whitespace
+    const serviceID = "service_xmmwg4f".trim();
+    const templateID = "template_weyao6t".trim(); 
+    const publicKey = "bBneJjbjP_6-Qzbpx".trim();
 
-    // 1. Init (already initialized in HTML head, but ensure it's ready)
-    if (typeof emailjs === 'undefined') { alert('EmailJS not loaded'); return; }
-    // Re-init to ensure public key is set (in case HTML init didn't run)
+    // Verify configuration
+    console.log('🔧 EmailJS Configuration:', {
+        serviceID: `"${serviceID}"`,
+        serviceIDLength: serviceID.length,
+        templateID: `"${templateID}"`,
+        publicKey: `"${publicKey}"`
+    });
+
+    // 1. Init - Ensure EmailJS is loaded and initialized
+    if (typeof emailjs === 'undefined') { 
+        alert('EmailJS not loaded. Please refresh the page.'); 
+        return; 
+    }
+    
+    // Initialize EmailJS with public key (will override HTML head init if needed)
     try {
         emailjs.init(publicKey);
+        console.log('✅ EmailJS initialized with public key:', publicKey);
+        
+        // Verify initialization worked
+        if (!emailjs || typeof emailjs.send !== 'function') {
+            throw new Error('EmailJS not properly initialized');
+        }
     } catch (e) {
-        console.warn('EmailJS init warning:', e);
+        console.error('❌ EmailJS initialization failed:', e);
+        alert('EmailJS initialization failed. Check console for details.');
+        return;
     }
 
     // 2. Validation
@@ -803,9 +823,9 @@ async function sendTableAssignments() {
                     recipient: member.email
                 });
                 
-                // Send with explicit publicKey (EmailJS v3 format)
-                // Format: emailjs.send(serviceID, templateID, templateParams, publicKey)
-                const response = await emailjs.send(serviceID, templateID, params, publicKey);
+                // Send (publicKey already initialized via emailjs.init above)
+                // EmailJS v3: If init() was called, don't pass publicKey again
+                const response = await emailjs.send(serviceID, templateID, params);
                 console.log(`✅ Sent to ${member.email}`, response);
                 sent++;
             } catch (e) {
