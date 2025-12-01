@@ -746,7 +746,7 @@ function setNotificationButtonsDisabled(disabled) {
 
 async function sendTableAssignments() {
     // 1. CONFIGURATION
-    const serviceID = "service_xmmwg4f";
+    const serviceID = "service_7x8jq3n";
     const templateID = "template_weyao6t"; 
     const publicKey = "bBneJjbjP_6-Qzbpx";
 
