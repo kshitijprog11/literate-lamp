@@ -747,12 +747,15 @@ function setNotificationButtonsDisabled(disabled) {
 async function sendTableAssignments() {
     const serviceID = "service_xmmwg4f";
     const templateID = "template_0fln8lu";
-    emailjs.init("bBneJjbjP_6-Qzbpx");
+    const publicKey = "bBneJjbjP_6-Qzbpx";
 
     if (typeof emailjs === 'undefined') {
         alert('EmailJS not loaded. Cannot send emails.');
         return;
     }
+
+    // Ensure EmailJS is authenticated with the correct public key
+    emailjs.init(publicKey);
     
     // Get date from notification date picker or fallback
     const dateStr = document.getElementById('notification-date').value || 'Upcoming Event';
@@ -774,6 +777,12 @@ async function sendTableAssignments() {
 
     for (const group of currentGroups) {
         for (const member of group.members) {
+            // Skip if email is missing or clearly invalid to avoid 400 errors
+            if (!member.email || typeof member.email !== 'string' || !member.email.includes('@')) {
+                console.warn('Skipping member with invalid email:', member);
+                continue;
+            }
+
             const templateParams = {
                 name: member.firstName + ' ' + member.lastName,
                 email: member.email,
@@ -784,7 +793,7 @@ async function sendTableAssignments() {
             };
             
             try {
-                await emailjs.send(serviceID, templateID, templateParams);
+                await emailjs.send(serviceID, templateID, templateParams, publicKey);
                 console.log(`Email sent to ${member.email}`);
                 sentCount++;
             } catch (e) {
