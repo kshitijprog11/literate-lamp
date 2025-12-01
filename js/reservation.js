@@ -484,9 +484,8 @@ async function sendConfirmationEmail(data) {
     }
 
     try {
-        // Replace with your Service ID and Template ID
-        const serviceID = 'YOUR_SERVICE_ID';
-        const templateID = 'YOUR_TEMPLATE_ID';
+        const serviceID = 'service_xmmwg4f';
+        const templateID = 'template_0fln8lu';
         
         const templateParams = {
             to_name: data.firstName + ' ' + data.lastName,
