@@ -794,10 +794,12 @@ async function sendTableAssignments() {
             
             try {
                 await emailjs.send(serviceID, templateID, templateParams, publicKey);
-                console.log(`Email sent to ${member.email}`);
+                console.log(`✅ Email sent to ${member.email}`);
                 sentCount++;
             } catch (e) {
-                console.error(`Failed to send to ${member.email}`, e);
+                const errorMsg = e?.text || e?.message || JSON.stringify(e);
+                console.error(`❌ Failed to send to ${member.email}:`, errorMsg);
+                console.error('Full error object:', e);
                 errorCount++;
             }
         }
