@@ -745,76 +745,62 @@ function setNotificationButtonsDisabled(disabled) {
 }
 
 async function sendTableAssignments() {
+    // 1. CONFIGURATION
     const serviceID = "service_xmmwg4f";
-    const templateID = "template_weyao6t";
+    const templateID = "template_weyao6t"; 
     const publicKey = "bBneJjbjP_6-Qzbpx";
 
-    if (typeof emailjs === 'undefined') {
-        alert('EmailJS not loaded. Cannot send emails.');
-        return;
-    }
-
-    // Ensure EmailJS is authenticated with the correct public key
+    // 1. Init
+    if (typeof emailjs === 'undefined') { alert('EmailJS not loaded'); return; }
     emailjs.init(publicKey);
-    
-    // Get date from notification date picker or fallback
+
+    // 2. Validation
     const dateStr = document.getElementById('notification-date').value || 'Upcoming Event';
-    
-    if (currentGroups.length === 0) {
-        alert('No groups loaded to notify.');
-        return;
+    if (!currentGroups || currentGroups.length === 0) { 
+        alert('No groups loaded. Please go to "Create Groups" first.'); 
+        return; 
     }
-
+    
     const totalPeople = currentGroups.reduce((acc, g) => acc + g.members.length, 0);
-    if (!confirm(`Are you sure you want to send emails to ${totalPeople} people for ${dateStr}?`)) {
-        return;
-    }
-    
-    let sentCount = 0;
-    let errorCount = 0;
- 
-    alert('Sending emails... check console for progress.');
+    if (!confirm(`Ready to send emails to ${totalPeople} real users?`)) return;
 
+    alert('Sending... check console for progress.');
+    let sent = 0;
+    let failed = 0;
+
+    // 3. THE LOOP
     for (const group of currentGroups) {
         for (const member of group.members) {
-            // Skip if email is missing or clearly invalid to avoid 400 errors
-            if (!member.email || typeof member.email !== 'string' || !member.email.includes('@')) {
-                console.warn('Skipping member with invalid email:', member);
-                continue;
-            }
+            // Skip if no email
+            if (!member.email) { failed++; continue; }
 
-            const templateParams = {
-                name: member.firstName + ' ' + member.lastName,
-                email: member.email,
-                table_number: group.tableAssignment,
+            // Prepare Data (Using Correct Variable Names)
+            const params = {
+                name: member.firstName + ' ' + member.lastName, // Matches {{name}}
+                email: member.email,                            // Matches {{email}}
+                table_number: group.tableAssignment,            // Matches {{table_number}}
                 event_date: group.eventDate || dateStr,
                 group_size: group.size,
-                companions: group.members.filter(m => m.email !== member.email).map(m => m.firstName).join(', ')
+                companions: group.members
+                    .filter(m => m.email !== member.email)
+                    .map(m => m.firstName)
+                    .join(', ')
             };
-            
-            // Debug: Log what we're sending
-            console.log('Sending email with:', {
-                serviceID,
-                templateID,
-                publicKey,
-                recipient: member.email,
-                templateParams
-            });
-            
+
             try {
-                await emailjs.send(serviceID, templateID, templateParams);
-                console.log(`✅ Email sent to ${member.email}`);
-                sentCount++;
+                // Send
+                await emailjs.send(serviceID, templateID, params, publicKey);
+                console.log(`✅ Sent to ${member.email}`);
+                sent++;
             } catch (e) {
-                const errorMsg = e?.text || e?.message || JSON.stringify(e);
-                console.error(`❌ Failed to send to ${member.email}:`, errorMsg);
-                console.error('Full error object:', e);
-                errorCount++;
+                console.error(`❌ Failed: ${member.email}`, e);
+                failed++;
             }
+            // Tiny safety delay
+            await new Promise(r => setTimeout(r, 200));
         }
     }
-
-    alert(`Notifications process complete! Success: ${sentCount}, Failed: ${errorCount}`);
+    alert(`Done! Success: ${sent}, Failed: ${failed}`);
 }
 
 function previewNotifications() {
