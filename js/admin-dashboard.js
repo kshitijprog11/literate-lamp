@@ -788,12 +788,25 @@ async function sendTableAssignments() {
             };
 
             try {
-                // Send
-                await emailjs.send(serviceID, templateID, params, publicKey);
+                // Debug: Log exactly what we're sending
+                console.log('📧 Sending email:', {
+                    serviceID,
+                    templateID,
+                    publicKey,
+                    recipient: member.email
+                });
+                
+                // Send (try without publicKey since we already init'd)
+                await emailjs.send(serviceID, templateID, params);
                 console.log(`✅ Sent to ${member.email}`);
                 sent++;
             } catch (e) {
                 console.error(`❌ Failed: ${member.email}`, e);
+                console.error('Error details:', {
+                    status: e?.status,
+                    text: e?.text,
+                    message: e?.message
+                });
                 failed++;
             }
             // Tiny safety delay
