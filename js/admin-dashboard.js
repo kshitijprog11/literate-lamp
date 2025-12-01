@@ -746,7 +746,7 @@ function setNotificationButtonsDisabled(disabled) {
 
 async function sendTableAssignments() {
     const serviceID = "service_xmmwg4f";
-    const templateID = "template_0fln8lu";
+    const templateID = "template_weyao6t";
     const publicKey = "bBneJjbjP_6-Qzbpx";
 
     if (typeof emailjs === 'undefined') {
