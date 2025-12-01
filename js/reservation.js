@@ -484,7 +484,7 @@ async function sendConfirmationEmail(data) {
     }
 
     try {
-        const serviceID = 'service_7x8jq3n';
+        const serviceID = 'service_xmmwg4f';
         const templateID = 'template_0fln8lu';
         
         const templateParams = {
