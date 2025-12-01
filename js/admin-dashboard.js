@@ -793,30 +793,40 @@ async function sendTableAssignments() {
             };
 
             try {
-                // Debug: Log exactly what we're sending
-                console.log('📧 Sending email:', {
-                    serviceID,
-                    templateID,
-                    publicKey,
-                    recipient: member.email,
-                    params
+                // Verify values before sending
+                console.log('🔍 Pre-send verification:', {
+                    serviceID: serviceID,
+                    serviceIDType: typeof serviceID,
+                    serviceIDLength: serviceID?.length,
+                    templateID: templateID,
+                    publicKey: publicKey,
+                    recipient: member.email
                 });
                 
-                // Send (publicKey already initialized globally)
-                const response = await emailjs.send(serviceID, templateID, params);
+                // Send with explicit publicKey (EmailJS v3 format)
+                // Format: emailjs.send(serviceID, templateID, templateParams, publicKey)
+                const response = await emailjs.send(serviceID, templateID, params, publicKey);
                 console.log(`✅ Sent to ${member.email}`, response);
                 sent++;
             } catch (e) {
-                const errorDetails = {
+                // Detailed error logging
+                console.error('❌ EmailJS Error Details:', {
                     status: e?.status,
                     text: e?.text,
                     message: e?.message,
-                    serviceID: serviceID,
-                    templateID: templateID,
-                    publicKey: publicKey
-                };
-                console.error(`❌ Failed: ${member.email}`, errorDetails);
-                console.error('Full error:', e);
+                    serviceID_sent: serviceID,
+                    templateID_sent: templateID,
+                    publicKey_sent: publicKey,
+                    error_object: e
+                });
+                
+                // Check if it's a service ID issue
+                if (e?.text?.includes('service ID')) {
+                    console.error('⚠️ SERVICE ID ISSUE DETECTED');
+                    console.error('Expected serviceID:', serviceID);
+                    console.error('Please verify in EmailJS dashboard that service_xmmwg4f exists');
+                }
+                
                 failed++;
             }
             // Tiny safety delay
