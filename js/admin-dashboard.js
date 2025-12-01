@@ -792,8 +792,17 @@ async function sendTableAssignments() {
                 companions: group.members.filter(m => m.email !== member.email).map(m => m.firstName).join(', ')
             };
             
+            // Debug: Log what we're sending
+            console.log('Sending email with:', {
+                serviceID,
+                templateID,
+                publicKey,
+                recipient: member.email,
+                templateParams
+            });
+            
             try {
-                await emailjs.send(serviceID, templateID, templateParams, publicKey);
+                await emailjs.send(serviceID, templateID, templateParams);
                 console.log(`✅ Email sent to ${member.email}`);
                 sentCount++;
             } catch (e) {
