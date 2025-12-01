@@ -745,12 +745,9 @@ function setNotificationButtonsDisabled(disabled) {
 }
 
 async function sendTableAssignments() {
-    // --- FINAL EMAIL CONFIG ---
     const serviceID = "service_xmmwg4f";
     const templateID = "template_0fln8lu";
-    const publicKey = "bBneJjbjP_6-Qzbpx";
-    emailjs.init(publicKey);
-    // --------------------------
+    emailjs.init("bBneJjbjP_6-Qzbpx");
 
     if (typeof emailjs === 'undefined') {
         alert('EmailJS not loaded. Cannot send emails.');
@@ -777,9 +774,9 @@ async function sendTableAssignments() {
 
     for (const group of currentGroups) {
         for (const member of group.members) {
-             const templateParams = {
-                to_name: member.firstName + ' ' + member.lastName,
-                to_email: member.email,
+            const templateParams = {
+                name: member.firstName + ' ' + member.lastName,
+                email: member.email,
                 table_number: group.tableAssignment,
                 event_date: group.eventDate || dateStr,
                 group_size: group.size,
