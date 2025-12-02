@@ -1,3 +1,4 @@
+import { doc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 import { personalityQuestions, calculatePersonalityScore, determinePersonalityType, buildPersonalityAnswerSummary } from './personality-test.js';
 
 const totalPersonalityQuestions = personalityQuestions.length;
@@ -97,8 +98,47 @@ document.addEventListener('DOMContentLoaded', () => {
             const personality = determinePersonalityType(score);
             const answerSummary = buildPersonalityAnswerSummary(answerIndices);
 
+            // STEP 2: Retrieve Reservation ID and update original Firestore document
+            // so the admin dashboard sees the test as Completed instead of Pending.
+            const reservationId = localStorage.getItem('currentReservationId');
+            if (!reservationId) {
+                console.error('No Reservation ID found in localStorage!');
+                alert('Error: Could not link test to reservation. Please contact support.');
+            } else if (typeof window.db !== 'undefined') {
+                try {
+                    await updateDoc(doc(window.db, 'reservations', reservationId), {
+                        personalityResults: {
+                            score,
+                            answers: answerSummary
+                        },
+                        personalityTestStatus: 'Completed', // fixes Test: Pending
+                        status: 'Confirmed'
+                    });
+                    console.log('✅ Updated Firestore reservation with personality results for ID:', reservationId);
+                } catch (updateError) {
+                    console.error('Failed to update Firestore reservation with personality results:', updateError);
+                } finally {
+                    // STEP 3: Clean up stored ID
+                    try {
+                        localStorage.removeItem('currentReservationId');
+                    } catch (cleanupError) {
+                        console.warn('Unable to clear currentReservationId from localStorage:', cleanupError);
+                    }
+                }
+            }
+
+            // Build payload for confirmation/localStorage
+            const personalityResults = {
+                score,
+                personality,
+                answers: answerSummary,
+                completedAt: new Date().toISOString()
+            };
+
             const reservationPayload = {
                 ...pendingReservationData,
+                personalityResults,
+                personalityTestStatus: 'Completed',
                 personalityScore: score,
                 personalityProfile: personality.type,
                 personalityDetails: {
@@ -106,17 +146,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     traits: personality.traits,
                     answers: answerSummary
                 },
-                completedPersonalityAt: new Date().toISOString(),
+                completedPersonalityAt: personalityResults.completedAt,
                 status: 'confirmed'
             };
 
             toggleFinishButtonState(true, finishButton, finishSpinner, finishButtonText);
 
             try {
-                const reservationId = await saveReservation(reservationPayload);
+                const finalReservationId = await saveReservation(reservationPayload);
                 await sendConfirmationEmail(reservationPayload);
 
-                sessionStorage.setItem('reservationId', reservationId);
+                sessionStorage.setItem('reservationId', finalReservationId);
                 sessionStorage.setItem('reservationData', JSON.stringify(reservationPayload));
 
                 window.location.href = 'confirmation.html';
@@ -197,6 +237,16 @@ async function saveReservation(reservationData) {
             );
             
             const docRef = await Promise.race([savePromise, timeoutPromise]);
+            
+            // STEP 1: Save the Reservation ID so the personality test
+            // can later update the original document instead of creating a new one.
+            try {
+                localStorage.setItem('currentReservationId', docRef.id);
+                console.log('SAVED Reservation ID:', docRef.id);
+            } catch (storageError) {
+                console.warn('Unable to persist currentReservationId:', storageError);
+            }
+
             return docRef.id;
             
         } catch (error) {
@@ -484,9 +534,8 @@ async function sendConfirmationEmail(data) {
     }
 
     try {
-        // Replace with your Service ID and Template ID
-        const serviceID = 'YOUR_SERVICE_ID';
-        const templateID = 'YOUR_TEMPLATE_ID';
+        const serviceID = 'service_xmmwg4f';
+        const templateID = 'template_0fln8lu';
         
         const templateParams = {
             to_name: data.firstName + ' ' + data.lastName,

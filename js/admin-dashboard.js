@@ -745,55 +745,115 @@ function setNotificationButtonsDisabled(disabled) {
 }
 
 async function sendTableAssignments() {
-    if (typeof emailjs === 'undefined') {
-        alert('EmailJS not loaded. Cannot send emails.');
-        return;
+    // 1. CONFIGURATION - Trim to remove any hidden whitespace
+    const serviceID = "service_xmmwg4f".trim();
+    const templateID = "template_weyao6t".trim(); 
+    const publicKey = "bBneJjbjP_6-Qzbpx".trim();
+
+    // Verify configuration
+    console.log('🔧 EmailJS Configuration:', {
+        serviceID: `"${serviceID}"`,
+        serviceIDLength: serviceID.length,
+        templateID: `"${templateID}"`,
+        publicKey: `"${publicKey}"`
+    });
+
+    // 1. Init - Ensure EmailJS is loaded and initialized
+    if (typeof emailjs === 'undefined') { 
+        alert('EmailJS not loaded. Please refresh the page.'); 
+        return; 
     }
     
-    // Get date from notification date picker or fallback
+    // Initialize EmailJS with public key (will override HTML head init if needed)
+    try {
+        emailjs.init(publicKey);
+        console.log('✅ EmailJS initialized with public key:', publicKey);
+        
+        // Verify initialization worked
+        if (!emailjs || typeof emailjs.send !== 'function') {
+            throw new Error('EmailJS not properly initialized');
+        }
+    } catch (e) {
+        console.error('❌ EmailJS initialization failed:', e);
+        alert('EmailJS initialization failed. Check console for details.');
+        return;
+    }
+
+    // 2. Validation
     const dateStr = document.getElementById('notification-date').value || 'Upcoming Event';
-    
-    if (currentGroups.length === 0) {
-        alert('No groups loaded to notify.');
-        return;
+    if (!currentGroups || currentGroups.length === 0) { 
+        alert('No groups loaded. Please go to "Create Groups" first.'); 
+        return; 
     }
-
+    
     const totalPeople = currentGroups.reduce((acc, g) => acc + g.members.length, 0);
-    if (!confirm(`Are you sure you want to send emails to ${totalPeople} people for ${dateStr}?`)) {
-        return;
-    }
+    if (!confirm(`Ready to send emails to ${totalPeople} real users?`)) return;
 
-    const serviceID = 'YOUR_SERVICE_ID';
-    const templateID = 'YOUR_TABLE_ASSIGNMENT_TEMPLATE_ID';
-    
-    let sentCount = 0;
-    let errorCount = 0;
+    alert('Sending... check console for progress.');
+    let sent = 0;
+    let failed = 0;
 
-    alert('Sending emails... check console for progress.');
-
+    // 3. THE LOOP
     for (const group of currentGroups) {
         for (const member of group.members) {
-             const templateParams = {
-                to_name: member.firstName + ' ' + member.lastName,
-                to_email: member.email,
-                table_number: group.tableAssignment,
+            // Skip if no email
+            if (!member.email) { failed++; continue; }
+
+            // Prepare Data (Using Correct Variable Names)
+            const params = {
+                name: member.firstName + ' ' + member.lastName, // Matches {{name}}
+                email: member.email,                            // Matches {{email}}
+                table_number: group.tableAssignment,            // Matches {{table_number}}
                 event_date: group.eventDate || dateStr,
                 group_size: group.size,
-                companions: group.members.filter(m => m.email !== member.email).map(m => m.firstName).join(', ')
+                companions: group.members
+                    .filter(m => m.email !== member.email)
+                    .map(m => m.firstName)
+                    .join(', ')
             };
-            
+
             try {
-                await emailjs.send(serviceID, templateID, templateParams);
-                console.log(`Email sent to ${member.email}`);
-                sentCount++;
+                // Verify values before sending
+                console.log('🔍 Pre-send verification:', {
+                    serviceID: serviceID,
+                    serviceIDType: typeof serviceID,
+                    serviceIDLength: serviceID?.length,
+                    templateID: templateID,
+                    publicKey: publicKey,
+                    recipient: member.email
+                });
+                
+                // Send (publicKey already initialized via emailjs.init above)
+                // EmailJS v3: If init() was called, don't pass publicKey again
+                const response = await emailjs.send(serviceID, templateID, params);
+                console.log(`✅ Sent to ${member.email}`, response);
+                sent++;
             } catch (e) {
-                console.error(`Failed to send to ${member.email}`, e);
-                errorCount++;
+                // Detailed error logging
+                console.error('❌ EmailJS Error Details:', {
+                    status: e?.status,
+                    text: e?.text,
+                    message: e?.message,
+                    serviceID_sent: serviceID,
+                    templateID_sent: templateID,
+                    publicKey_sent: publicKey,
+                    error_object: e
+                });
+                
+                // Check if it's a service ID issue
+                if (e?.text?.includes('service ID')) {
+                    console.error('⚠️ SERVICE ID ISSUE DETECTED');
+                    console.error('Expected serviceID:', serviceID);
+                    console.error('Please verify in EmailJS dashboard that service_xmmwg4f exists');
+                }
+                
+                failed++;
             }
+            // Tiny safety delay
+            await new Promise(r => setTimeout(r, 200));
         }
     }
-
-    alert(`Notifications process complete! Success: ${sentCount}, Failed: ${errorCount}`);
+    alert(`Done! Success: ${sent}, Failed: ${failed}`);
 }
 
 function previewNotifications() {
