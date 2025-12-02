@@ -19,8 +19,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             displayReservationDetails(reservationId, reservationData, personalityResults);
             
-            // Send confirmation email (simulate)
-            sendConfirmationEmail(reservationData);
+            // Send confirmation email
+            sendConfirmationEmail(reservationData).catch(error => {
+                console.error('Email sending error:', error);
+            });
             
         } catch (error) {
             console.error('Error loading reservation details:', error);
