@@ -1,4 +1,5 @@
 import { personalityQuestions, calculatePersonalityScore, determinePersonalityType, buildPersonalityAnswerSummary } from './personality-test.js';
+import { doc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 
 const totalPersonalityQuestions = personalityQuestions.length;
 let currentQuestionIndex = 0;
@@ -103,15 +104,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!reservationId) {
                 console.error('No Reservation ID found in localStorage!');
                 alert('Error: Could not link test to reservation. Please contact support.');
-            } else if (typeof window.db !== 'undefined' && window.doc && window.updateDoc) {
+            } else if (typeof window.db !== 'undefined') {
                 try {
-                    const reservationRef = window.doc(window.db, 'reservations', reservationId);
-                    await window.updateDoc(reservationRef, {
+                    const reservationRef = doc(window.db, 'reservations', reservationId);
+                    await updateDoc(reservationRef, {
                         personalityResults: {
                             score,
                             answers: answerSummary
                         },
-                        personalityTestStatus: 'Completed',
+                        personalityTestStatus: 'Completed', // fixes Test: Pending
                         status: 'Confirmed'
                     });
                     console.log('✅ Updated Firestore reservation with personality results for ID:', reservationId);
