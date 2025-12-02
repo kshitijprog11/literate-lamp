@@ -78,11 +78,40 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
     
-    function sendConfirmationEmail(reservationData) {
-        // In a real application, this would trigger an email via your backend
-        setTimeout(() => {
-            showNotification('Confirmation email sent to ' + reservationData.email, 'success');
-        }, 2000);
+    async function sendConfirmationEmail(reservationData) {
+        // Check if EmailJS is available
+        if (typeof emailjs === 'undefined') {
+            console.warn('EmailJS not loaded, skipping email');
+            setTimeout(() => {
+                showNotification('Confirmation details saved (email unavailable)', 'success');
+            }, 2000);
+            return;
+        }
+
+        try {
+            const serviceID = 'service_xmmwg4f';
+            const templateID = 'template_0fln8lu';
+            
+            const templateParams = {
+                to_name: reservationData.firstName + ' ' + reservationData.lastName,
+                to_email: reservationData.email,
+                event_date: reservationData.eventDate,
+                time_slot: reservationData.timeSlot,
+                party_size: 1,
+                dietary_restrictions: reservationData.dietaryRestrictions || 'None'
+            };
+
+            await emailjs.send(serviceID, templateID, templateParams);
+            console.log('Confirmation email sent successfully to:', reservationData.email);
+            setTimeout(() => {
+                showNotification('Confirmation email sent to ' + reservationData.email, 'success');
+            }, 2000);
+        } catch (error) {
+            console.error('Failed to send confirmation email:', error);
+            setTimeout(() => {
+                showNotification('Confirmation saved (email delivery pending)', 'success');
+            }, 2000);
+        }
     }
     
     // Print functionality
