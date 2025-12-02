@@ -138,14 +138,18 @@ window.showNotification = function(message, type = 'success') {
     div.style.top = '20px';
     div.style.right = '20px';
     div.style.padding = '15px 25px';
-    div.style.backgroundColor = type === 'error' ? '#d32f2f' : '#2e7d32';
+    div.style.backgroundColor = type === 'error' ? '#d32f2f' : '#2e7d32'; // Red or Green
     div.style.color = 'white';
     div.style.borderRadius = '5px';
     div.style.zIndex = '10000';
     div.style.boxShadow = '0 4px 6px rgba(0,0,0,0.2)';
+    div.style.fontWeight = 'bold';
     document.body.appendChild(div);
+    
+    // Remove after 3 seconds
     setTimeout(() => {
-        div.style.opacity = '0'; 
+        div.style.opacity = '0';
+        div.style.transition = 'opacity 0.5s ease';
         setTimeout(() => div.remove(), 500);
     }, 3000);
 };
