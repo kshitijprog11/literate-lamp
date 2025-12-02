@@ -1,4 +1,4 @@
-import { doc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+import { getFirestore, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 import { personalityQuestions, calculatePersonalityScore, determinePersonalityType, buildPersonalityAnswerSummary } from './personality-test.js';
 
 const totalPersonalityQuestions = personalityQuestions.length;
@@ -100,31 +100,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // STEP 2: Retrieve Reservation ID and update original Firestore document
             // so the admin dashboard sees the test as Completed instead of Pending.
+            // Retrieve ID
             const reservationId = localStorage.getItem('currentReservationId');
-            if (!reservationId) {
-                console.error('No Reservation ID found in localStorage!');
-                alert('Error: Could not link test to reservation. Please contact support.');
-            } else if (typeof window.db !== 'undefined') {
+            
+            if (reservationId && window.db) {
                 try {
-                    await updateDoc(doc(window.db, 'reservations', reservationId), {
-                        personalityResults: {
-                            score,
-                            answers: answerSummary
-                        },
-                        personalityTestStatus: 'Completed', // fixes Test: Pending
+                    // Force the update
+                    const reservationRef = doc(window.db, 'reservations', reservationId);
+                    await updateDoc(reservationRef, {
+                        personalityResults: { score: score, answers: answerSummary },
+                        personalityTestStatus: 'Completed',
                         status: 'Confirmed'
                     });
-                    console.log('✅ Updated Firestore reservation with personality results for ID:', reservationId);
-                } catch (updateError) {
-                    console.error('Failed to update Firestore reservation with personality results:', updateError);
-                } finally {
-                    // STEP 3: Clean up stored ID
-                    try {
-                        localStorage.removeItem('currentReservationId');
-                    } catch (cleanupError) {
-                        console.warn('Unable to clear currentReservationId from localStorage:', cleanupError);
-                    }
+                    console.log("✅ Status Updated to Completed");
+                } catch (e) {
+                    console.error("❌ Update Failed:", e);
                 }
+            } else {
+                console.warn("⚠️ Skipping update: No ID or DB found");
             }
 
             // Build payload for confirmation/localStorage
