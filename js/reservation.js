@@ -97,8 +97,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const personality = determinePersonalityType(score);
             const answerSummary = buildPersonalityAnswerSummary(answerIndices);
 
+            // Normalize personality results so Admin Dashboard and grouping logic
+            // can detect this reservation as "Completed" instead of "Pending".
+            const personalityResults = {
+                score,
+                personality,
+                answers: answerSummary,
+                completedAt: new Date().toISOString()
+            };
+
             const reservationPayload = {
                 ...pendingReservationData,
+                // Legacy / compatibility fields
+                personalityResults,
+                personalityTestStatus: 'Completed',
+                // Existing summary fields
                 personalityScore: score,
                 personalityProfile: personality.type,
                 personalityDetails: {
@@ -106,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     traits: personality.traits,
                     answers: answerSummary
                 },
-                completedPersonalityAt: new Date().toISOString(),
+                completedPersonalityAt: personalityResults.completedAt,
                 status: 'confirmed'
             };
 
