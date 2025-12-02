@@ -1,5 +1,5 @@
-import { personalityQuestions, calculatePersonalityScore, determinePersonalityType, buildPersonalityAnswerSummary } from './personality-test.js';
 import { doc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+import { personalityQuestions, calculatePersonalityScore, determinePersonalityType, buildPersonalityAnswerSummary } from './personality-test.js';
 
 const totalPersonalityQuestions = personalityQuestions.length;
 let currentQuestionIndex = 0;
@@ -106,8 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Error: Could not link test to reservation. Please contact support.');
             } else if (typeof window.db !== 'undefined') {
                 try {
-                    const reservationRef = doc(window.db, 'reservations', reservationId);
-                    await updateDoc(reservationRef, {
+                    await updateDoc(doc(window.db, 'reservations', reservationId), {
                         personalityResults: {
                             score,
                             answers: answerSummary
@@ -128,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Keep building the full payload for localStorage / confirmation page
+            // Build payload for confirmation/localStorage
             const personalityResults = {
                 score,
                 personality,
@@ -138,10 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const reservationPayload = {
                 ...pendingReservationData,
-                // Legacy / compatibility fields
                 personalityResults,
                 personalityTestStatus: 'Completed',
-                // Existing summary fields
                 personalityScore: score,
                 personalityProfile: personality.type,
                 personalityDetails: {
@@ -156,10 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleFinishButtonState(true, finishButton, finishSpinner, finishButtonText);
 
             try {
-                const reservationId = await saveReservation(reservationPayload);
+                const finalReservationId = await saveReservation(reservationPayload);
                 await sendConfirmationEmail(reservationPayload);
 
-                sessionStorage.setItem('reservationId', reservationId);
+                sessionStorage.setItem('reservationId', finalReservationId);
                 sessionStorage.setItem('reservationData', JSON.stringify(reservationPayload));
 
                 window.location.href = 'confirmation.html';
