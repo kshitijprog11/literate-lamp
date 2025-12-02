@@ -130,3 +130,37 @@ function formatDateTime(dateString, timeString) {
 // Export for potential future use
 window.formatCurrency = formatCurrency;
 window.formatDateTime = formatDateTime;
+
+function showNotification(message, type = 'success') {
+    // Create element
+    const div = document.createElement('div');
+    div.textContent = message;
+    
+    // Style it (Inline styles for simplicity)
+    div.style.position = 'fixed';
+    div.style.top = '20px';
+    div.style.right = '20px';
+    div.style.padding = '15px 25px';
+    div.style.borderRadius = '5px';
+    div.style.color = 'white';
+    div.style.fontWeight = 'bold';
+    div.style.zIndex = '9999';
+    div.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+    div.style.transition = 'opacity 0.5s ease';
+
+    // Set color based on type
+    if (type === 'error') {
+        div.style.backgroundColor = '#d32f2f'; // Red
+    } else {
+        div.style.backgroundColor = '#2e7d32'; // Green
+    }
+
+    // Add to DOM
+    document.body.appendChild(div);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+        div.style.opacity = '0';
+        setTimeout(() => div.remove(), 500);
+    }, 3000);
+}
