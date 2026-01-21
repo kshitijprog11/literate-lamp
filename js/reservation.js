@@ -536,10 +536,19 @@ async function sendConfirmationEmail(data) {
     try {
         const serviceID = 'service_xmmwg4f';
         const templateID = 'template_0fln8lu';
+        const publicKey = 'bBneJjbjP_6-Qzbpx';
         
+        // Initialize EmailJS explicitly to be safe
+        emailjs.init(publicKey);
+
         const templateParams = {
+            // Include both naming conventions to ensure template compatibility
             to_name: data.firstName + ' ' + data.lastName,
+            name: data.firstName + ' ' + data.lastName,
+
             to_email: data.email,
+            email: data.email,
+
             event_date: data.eventDate,
             time_slot: data.timeSlot,
             party_size: 1, // Defaulting to 1 for individual reservations
