@@ -19,8 +19,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             displayReservationDetails(reservationId, reservationData, personalityResults);
             
-            // Send confirmation email (simulate)
-            sendConfirmationEmail(reservationData);
+            // Send confirmation email
+            sendConfirmationEmail(reservationData).catch(error => {
+                console.error('Email sending error:', error);
+            });
             
         } catch (error) {
             console.error('Error loading reservation details:', error);
@@ -78,11 +80,40 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
     
-    function sendConfirmationEmail(reservationData) {
-        // In a real application, this would trigger an email via your backend
-        setTimeout(() => {
-            showNotification('Confirmation email sent to ' + reservationData.email, 'success');
-        }, 2000);
+    async function sendConfirmationEmail(reservationData) {
+        // Check if EmailJS is available
+        if (typeof emailjs === 'undefined') {
+            console.warn('EmailJS not loaded, skipping email');
+            setTimeout(() => {
+                showNotification('Confirmation details saved (email unavailable)', 'success');
+            }, 2000);
+            return;
+        }
+
+        try {
+            const serviceID = 'service_xmmwg4f';
+            const templateID = 'template_0fln8lu';
+            
+            const templateParams = {
+                to_name: reservationData.firstName + ' ' + reservationData.lastName,
+                to_email: reservationData.email,
+                event_date: reservationData.eventDate,
+                time_slot: reservationData.timeSlot,
+                party_size: 1,
+                dietary_restrictions: reservationData.dietaryRestrictions || 'None'
+            };
+
+            await emailjs.send(serviceID, templateID, templateParams);
+            console.log('Confirmation email sent successfully to:', reservationData.email);
+            setTimeout(() => {
+                showNotification('Confirmation email sent to ' + reservationData.email, 'success');
+            }, 2000);
+        } catch (error) {
+            console.error('Failed to send confirmation email:', error);
+            setTimeout(() => {
+                showNotification('Confirmation saved (email delivery pending)', 'success');
+            }, 2000);
+        }
     }
     
     // Print functionality
@@ -131,36 +162,25 @@ function formatDateTime(dateString, timeString) {
 window.formatCurrency = formatCurrency;
 window.formatDateTime = formatDateTime;
 
-function showNotification(message, type = 'success') {
-    // Create element
+window.showNotification = function(message, type = 'success') {
     const div = document.createElement('div');
     div.textContent = message;
-    
-    // Style it (Inline styles for simplicity)
     div.style.position = 'fixed';
     div.style.top = '20px';
     div.style.right = '20px';
     div.style.padding = '15px 25px';
-    div.style.borderRadius = '5px';
+    div.style.backgroundColor = type === 'error' ? '#d32f2f' : '#2e7d32'; // Red or Green
     div.style.color = 'white';
+    div.style.borderRadius = '5px';
+    div.style.zIndex = '10000';
+    div.style.boxShadow = '0 4px 6px rgba(0,0,0,0.2)';
     div.style.fontWeight = 'bold';
-    div.style.zIndex = '9999';
-    div.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-    div.style.transition = 'opacity 0.5s ease';
-
-    // Set color based on type
-    if (type === 'error') {
-        div.style.backgroundColor = '#d32f2f'; // Red
-    } else {
-        div.style.backgroundColor = '#2e7d32'; // Green
-    }
-
-    // Add to DOM
     document.body.appendChild(div);
-
+    
     // Remove after 3 seconds
     setTimeout(() => {
         div.style.opacity = '0';
+        div.style.transition = 'opacity 0.5s ease';
         setTimeout(() => div.remove(), 500);
     }, 3000);
-}
+};
