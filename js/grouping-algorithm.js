@@ -175,10 +175,12 @@ function handleSmallGroups(groups, config) {
         // If we have enough stragglers to form a valid group
         if (smallGroupsUsers.length >= config.minGroupSize) {
             const newGroupSize = Math.min(smallGroupsUsers.length, config.idealGroupSize);
-            result.push(smallGroupsUsers.splice(0, newGroupSize));
+            // Optimization: Process from the end to avoid costly array shifting
+            result.push(smallGroupsUsers.splice(smallGroupsUsers.length - newGroupSize, newGroupSize));
         } else {
             // Not enough to form a group, distribute them one by one
-            const userToPlace = smallGroupsUsers.shift();
+            // Optimization: Process from the end using pop() instead of shift() to avoid O(N) shift operation
+            const userToPlace = smallGroupsUsers.pop();
             const bestGroup = findBestGroup(userToPlace, result, config);
             
             if (bestGroup) {
