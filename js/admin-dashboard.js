@@ -793,17 +793,18 @@ async function sendTableAssignments() {
     let sent = 0;
     let failed = 0;
 
-    // 3. THE LOOP
+    // 3. THE LOOP - Optimized for Concurrent Sending
+    const emailTasks = [];
+
+    // Collect all tasks first
     for (const group of currentGroups) {
         for (const member of group.members) {
-            // Skip if no email
             if (!member.email) { failed++; continue; }
 
-            // Prepare Data (Using Correct Variable Names)
             const params = {
-                name: member.firstName + ' ' + member.lastName, // Matches {{name}}
-                email: member.email,                            // Matches {{email}}
-                table_number: group.tableAssignment,            // Matches {{table_number}}
+                name: member.firstName + ' ' + member.lastName,
+                email: member.email,
+                table_number: group.tableAssignment,
                 event_date: group.eventDate || dateStr,
                 group_size: group.size,
                 companions: group.members
@@ -812,47 +813,55 @@ async function sendTableAssignments() {
                     .join(', ')
             };
 
+            emailTasks.push({ member, params });
+        }
+    }
+
+    // Process with concurrency limit to prevent rate limiting
+    const CONCURRENCY_LIMIT = 5;
+    const executing = new Set();
+    const promises = [];
+
+    for (const task of emailTasks) {
+        const p = (async () => {
             try {
-                // Verify values before sending
-                console.log('🔍 Pre-send verification:', {
+                 // Verify values before sending
+                 console.log('🔍 Pre-send verification:', {
                     serviceID: serviceID,
-                    serviceIDType: typeof serviceID,
-                    serviceIDLength: serviceID?.length,
                     templateID: templateID,
-                    publicKey: publicKey,
-                    recipient: member.email
+                    recipient: task.member.email
                 });
-                
-                // Send (publicKey already initialized via emailjs.init above)
-                // EmailJS v3: If init() was called, don't pass publicKey again
-                const response = await emailjs.send(serviceID, templateID, params);
-                console.log(`✅ Sent to ${member.email}`, response);
+
+                const response = await emailjs.send(serviceID, templateID, task.params);
+                console.log(`✅ Sent to ${task.member.email}`, response);
                 sent++;
             } catch (e) {
-                // Detailed error logging
                 console.error('❌ EmailJS Error Details:', {
                     status: e?.status,
                     text: e?.text,
                     message: e?.message,
-                    serviceID_sent: serviceID,
-                    templateID_sent: templateID,
-                    publicKey_sent: publicKey,
+                    recipient: task.member.email,
                     error_object: e
                 });
                 
-                // Check if it's a service ID issue
-                if (e?.text?.includes('service ID')) {
+                 if (e?.text?.includes('service ID')) {
                     console.error('⚠️ SERVICE ID ISSUE DETECTED');
                     console.error('Expected serviceID:', serviceID);
-                    console.error('Please verify in EmailJS dashboard that service_xmmwg4f exists');
                 }
-                
                 failed++;
             }
-            // Tiny safety delay
-            await new Promise(r => setTimeout(r, 200));
+        })();
+
+        promises.push(p);
+        executing.add(p);
+        p.finally(() => executing.delete(p));
+
+        if (executing.size >= CONCURRENCY_LIMIT) {
+            await Promise.race(executing);
         }
     }
+
+    await Promise.all(promises);
     alert(`Done! Success: ${sent}, Failed: ${failed}`);
 }
 
