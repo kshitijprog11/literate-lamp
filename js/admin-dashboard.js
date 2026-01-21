@@ -63,8 +63,7 @@ function showSection(sectionName) {
 // Overview Section
 async function loadDashboardData() {
     try {
-        await loadReservations();
-        await loadGroups();
+        await Promise.all([loadReservations(), loadGroups()]);
         updateStatistics();
         loadRecentActivity();
     } catch (error) {
