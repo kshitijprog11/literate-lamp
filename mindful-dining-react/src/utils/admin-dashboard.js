@@ -68,6 +68,7 @@ function showSection(sectionName) {
 // Overview Section
 async function loadDashboardData() {
     try {
+        // Optimized: Parallelize independent data loading calls
         await Promise.all([loadReservations(), loadGroups()]);
         updateStatistics();
         loadRecentActivity();
