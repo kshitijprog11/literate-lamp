@@ -549,9 +549,23 @@ async function sendConfirmationEmail(data) {
             to_email: data.email,
             email: data.email,
 
+            // Date aliases
             event_date: data.eventDate,
+            date: data.eventDate,
+
+            // Time aliases
             time_slot: data.timeSlot,
+            time: data.timeSlot,
+
+            // Guests aliases
             party_size: 1, // Defaulting to 1 for individual reservations
+            guests: 1,
+
+            // Personality aliases
+            personality_type: data.personalityProfile || data.personalityResults?.personality?.type || 'Pending',
+            archetype: data.personalityProfile || data.personalityResults?.personality?.type || 'Pending',
+            personality: data.personalityProfile || data.personalityResults?.personality?.type || 'Pending',
+
             dietary_restrictions: data.dietaryRestrictions || 'None'
         };
 
