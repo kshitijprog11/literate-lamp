@@ -1607,3 +1607,104 @@ a:focus-visible {
     color: black;
   }
 }
+
+/* ============================================
+   Style Guide / Newsletter Section
+   ============================================ */
+.style-guide-section {
+  background-color: var(--color-primary-light);
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-accent) 100%);
+  color: white;
+  padding: var(--spacing-4xl) 0;
+  text-align: center;
+}
+
+.style-guide-section h2 {
+  color: white;
+  margin-bottom: var(--spacing-lg);
+}
+
+.style-guide-section p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: var(--font-size-lg);
+  max-width: 600px;
+  margin: 0 auto var(--spacing-2xl);
+}
+
+.newsletter-container {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.newsletter-form {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-direction: column;
+}
+
+@media (min-width: 640px) {
+  .newsletter-form {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .newsletter-form .form-group {
+    flex: 1;
+    margin-bottom: 0;
+  }
+}
+
+.newsletter-form input[type="email"] {
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-full);
+  width: 100%;
+  transition: all var(--transition-base);
+}
+
+.newsletter-form input[type="email"]::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.newsletter-form input[type="email"]:focus {
+  background-color: white;
+  color: var(--color-neutral-900);
+  border-color: white;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+}
+
+.newsletter-form .cta-button {
+  background: white;
+  color: var(--color-primary-dark);
+  border: 2px solid white;
+  white-space: nowrap;
+}
+
+.newsletter-form .cta-button:hover {
+  background: transparent;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.style-guide-section .message {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  background-color: rgba(255, 255, 255, 0.95);
+  display: inline-block;
+  color: var(--color-neutral-800);
+}
+
+.style-guide-section .success-message {
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.style-guide-section .error-message {
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+}
