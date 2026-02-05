@@ -287,8 +287,14 @@ function addDiversity(groups, config) {
         const member2 = group2[m2Idx];
         
         // Check if swap is acceptable (scores still within range)
-        const g1Avg = calculateAverageScore(group1.filter((_, idx) => idx !== m1Idx));
-        const g2Avg = calculateAverageScore(group2.filter((_, idx) => idx !== m2Idx));
+        const g1Sum = group1.reduce((acc, user) => acc + (user.personalityResults?.score || 0), 0);
+        const g2Sum = group2.reduce((acc, user) => acc + (user.personalityResults?.score || 0), 0);
+
+        const g1Count = group1.length - 1;
+        const g2Count = group2.length - 1;
+
+        const g1Avg = g1Count === 0 ? 0 : Math.round((g1Sum - (member1.personalityResults?.score || 0)) / g1Count);
+        const g2Avg = g2Count === 0 ? 0 : Math.round((g2Sum - (member2.personalityResults?.score || 0)) / g2Count);
         
         const diff1 = Math.abs(member2.personalityResults.score - g1Avg);
         const diff2 = Math.abs(member1.personalityResults.score - g2Avg);
