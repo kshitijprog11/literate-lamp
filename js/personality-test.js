@@ -108,25 +108,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h3>${question.text}</h3>
                 <div class="options">
                     ${question.options.map((option, optionIndex) => `
-                        <div class="option ${answers[index] === optionIndex ? 'selected' : ''}" 
-                             onclick="selectAnswer(${index}, ${optionIndex})">
+                        <label class="option ${answers[index] === optionIndex ? 'selected' : ''}">
                             <input type="radio" name="question-${index}" value="${optionIndex}" 
                                    ${answers[index] === optionIndex ? 'checked' : ''}>
                             <span>${option.text}</span>
-                        </div>
+                        </label>
                     `).join('')}
                 </div>
             </div>
         `;
+
+        // Attach event listeners
+        const inputs = questionContainer.querySelectorAll('input[type="radio"]');
+        inputs.forEach(input => {
+            input.addEventListener('change', () => {
+                selectAnswer(index, parseInt(input.value));
+            });
+        });
     }
     
     function selectAnswer(questionIndex, optionIndex) {
         answers[questionIndex] = optionIndex;
         
         // Update visual selection
-        const options = document.querySelectorAll('.option');
-        options.forEach(option => option.classList.remove('selected'));
-        event.currentTarget.classList.add('selected');
+        const options = questionContainer.querySelectorAll('.option');
+        options.forEach(option => {
+            const input = option.querySelector('input');
+            if (input && input.checked) {
+                option.classList.add('selected');
+            } else {
+                option.classList.remove('selected');
+            }
+        });
         
         updateNavigation();
     }
@@ -249,7 +262,5 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Make selectAnswer globally available
-    window.selectAnswer = selectAnswer;
 });
 
