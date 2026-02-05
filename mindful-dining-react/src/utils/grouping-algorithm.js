@@ -269,8 +269,16 @@ function addDiversity(groups, config) {
         const member2 = group2[member2Index];
         
         // Check if swap would maintain score compatibility
-        const group1AvgWithoutMember1 = calculateAverageScore(group1.filter((_, i) => i !== member1Index));
-        const group2AvgWithoutMember2 = calculateAverageScore(group2.filter((_, i) => i !== member2Index));
+        // Optimization: Calculate average mathematically to avoid O(N) array allocation/iteration from filter()
+        const group1Sum = group1.reduce((acc, user) => acc + user.personalityResults.score, 0);
+        const group2Sum = group2.reduce((acc, user) => acc + user.personalityResults.score, 0);
+
+        const group1AvgWithoutMember1 = group1.length > 1
+            ? Math.round((group1Sum - member1.personalityResults.score) / (group1.length - 1))
+            : 0;
+        const group2AvgWithoutMember2 = group2.length > 1
+            ? Math.round((group2Sum - member2.personalityResults.score) / (group2.length - 1))
+            : 0;
         
         const score1Diff = Math.abs(member2.personalityResults.score - group1AvgWithoutMember1);
         const score2Diff = Math.abs(member1.personalityResults.score - group2AvgWithoutMember2);
