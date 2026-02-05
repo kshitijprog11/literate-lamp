@@ -135,26 +135,27 @@ class TableAssignmentManager {
      * Get details for all group members
      */
     async getGroupMemberDetails(memberEmails) {
-        const memberDetails = [];
-        
-        for (const email of memberEmails) {
+        const promises = memberEmails.map(async (email) => {
             try {
                 // Get reservation details
                 const reservation = await this.getReservationByEmail(email);
                 if (reservation) {
-                    memberDetails.push({
+                    return {
                         email: email,
                         name: `${reservation.firstName} ${reservation.lastName}`,
                         personalityResults: reservation.personalityResults,
                         interests: reservation.interests || []
-                    });
+                    };
                 }
+                return null;
             } catch (error) {
                 console.error(`Error fetching details for ${email}:`, error);
+                return null;
             }
-        }
+        });
         
-        return memberDetails;
+        const results = await Promise.all(promises);
+        return results.filter(result => result !== null);
     }
 
     /**
