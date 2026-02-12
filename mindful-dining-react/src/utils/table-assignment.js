@@ -137,26 +137,29 @@ class TableAssignmentManager {
      * Get details for all group members
      */
     async getGroupMemberDetails(memberEmails) {
-        const memberDetails = [];
-        
-        for (const email of memberEmails) {
+        // Parallelize member details fetching for performance
+        const memberPromises = memberEmails.map(async (email) => {
             try {
                 // Get reservation details
                 const reservation = await this.getReservationByEmail(email);
                 if (reservation) {
-                    memberDetails.push({
+                    return {
                         email: email,
                         name: `${reservation.firstName} ${reservation.lastName}`,
                         personalityResults: reservation.personalityResults,
                         interests: reservation.interests || []
-                    });
+                    };
                 }
             } catch (error) {
                 console.error(`Error fetching details for ${email}:`, error);
+                return null;
             }
-        }
-        
-        return memberDetails;
+            return null;
+        });
+
+        // Wait for all requests to complete and filter out failures/nulls
+        const results = await Promise.all(memberPromises);
+        return results.filter(member => member !== null);
     }
 
     /**
