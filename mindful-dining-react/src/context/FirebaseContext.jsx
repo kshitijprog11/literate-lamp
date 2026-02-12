@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react'
 import { initializeApp } from 'firebase/app'
 import { getFirestore, collection, addDoc, getDocs, query, orderBy } from 'firebase/firestore'
 
@@ -33,7 +33,7 @@ export function FirebaseProvider({ children }) {
     }
   }, [])
 
-  const saveReservation = async (reservationData) => {
+  const saveReservation = useCallback(async (reservationData) => {
     if (!reservationData.email || !reservationData.firstName) {
       throw new Error('Missing required reservation data')
     }
@@ -65,9 +65,9 @@ export function FirebaseProvider({ children }) {
       console.log('✅ Reservation saved locally with ID:', reservationId)
       return reservationId
     }
-  }
+  }, [db, fastTestingMode])
 
-  const getReservations = async () => {
+  const getReservations = useCallback(async () => {
     if (fastTestingMode || !db) {
       // Get from localStorage
       const reservations = []
@@ -97,15 +97,15 @@ export function FirebaseProvider({ children }) {
       console.error('Error fetching reservations:', error)
       return []
     }
-  }
+  }, [db, fastTestingMode])
 
-  const value = {
+  const value = useMemo(() => ({
     db,
     isConnected,
     fastTestingMode,
     saveReservation,
     getReservations
-  }
+  }), [db, isConnected, fastTestingMode, saveReservation, getReservations])
 
   return (
     <FirebaseContext.Provider value={value}>
