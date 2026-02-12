@@ -100,12 +100,6 @@ const CONFIG = {
             template: "reminder-template-id"
         }
     },
-
-    // Mailchimp Configuration
-    mailchimp: {
-        actionUrl: "", // Your Mailchimp form action URL (e.g., https://yourdomain.usX.list-manage.com/subscribe/post?u=...&id=...)
-        audienceId: "" // Optional: Audience ID if using API
-    },
     
     // Admin Dashboard Settings
     admin: {
