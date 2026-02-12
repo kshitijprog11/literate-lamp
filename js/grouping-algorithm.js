@@ -187,13 +187,18 @@ function handleSmallGroups(groups, config) {
                 // Add to best group. Allow slightly exceeding maxGroupSize to accommodate stragglers.
                 // This prevents infinite loops or leaving users behind.
                 bestGroup.push(userToPlace);
+                bestGroup.averageScore = undefined; // Invalidate cached scores
+                bestGroup.scoreSum = undefined;
             } else {
                 // If no existing group is suitable (e.g., all are way too far in score),
                 // we might have to create a small group or force fit.
                 // Strategy: Force fit into the last group if no better option exists, 
                 // or create a new undersized group if absolutely necessary (though we try to avoid this).
                 if (result.length > 0) {
-                     result[result.length - 1].push(userToPlace);
+                    const lastGroup = result[result.length - 1];
+                    lastGroup.push(userToPlace);
+                    lastGroup.averageScore = undefined; // Invalidate cached scores
+                    lastGroup.scoreSum = undefined;
                 } else {
                     // No groups exist at all, so this is the only user?
                     result.push([userToPlace]);
@@ -243,14 +248,20 @@ function balanceGroupSizes(groups, config) {
     for (const largeGroup of largeGroups) {
         while (largeGroup.length > config.idealGroupSize) {
             const memberToMove = largeGroup.pop(); // Remove last member (usually extreme score)
+            largeGroup.averageScore = undefined; // Invalidate cached scores
+            largeGroup.scoreSum = undefined;
             
             const targetGroup = findBestGroup(memberToMove, smallGroups, config);
             
             if (targetGroup && targetGroup.length < config.idealGroupSize) {
                 targetGroup.push(memberToMove);
+                targetGroup.averageScore = undefined; // Invalidate cached scores
+                targetGroup.scoreSum = undefined;
             } else {
                 // If no suitable group, put member back and stop trying for this group
                 largeGroup.push(memberToMove);
+                largeGroup.averageScore = undefined; // Invalidate cached scores
+                largeGroup.scoreSum = undefined;
                 break;
             }
         }
@@ -287,16 +298,34 @@ function addDiversity(groups, config) {
         const member2 = group2[m2Idx];
         
         // Check if swap is acceptable (scores still within range)
-        const g1Avg = calculateAverageScore(group1.filter((_, idx) => idx !== m1Idx));
-        const g2Avg = calculateAverageScore(group2.filter((_, idx) => idx !== m2Idx));
+        // Optimization: Use cached sum to calculate new average mathematically
+        const g1Sum = group1.scoreSum !== undefined ? group1.scoreSum : group1.reduce((acc, u) => acc + (u.personalityResults?.score || 0), 0);
+        const g2Sum = group2.scoreSum !== undefined ? group2.scoreSum : group2.reduce((acc, u) => acc + (u.personalityResults?.score || 0), 0);
         
-        const diff1 = Math.abs(member2.personalityResults.score - g1Avg);
-        const diff2 = Math.abs(member1.personalityResults.score - g2Avg);
+        // Ensure sums are cached
+        group1.scoreSum = g1Sum;
+        group2.scoreSum = g2Sum;
+
+        const m1Score = member1.personalityResults?.score || 0;
+        const m2Score = member2.personalityResults?.score || 0;
+
+        // Safety check to avoid division by zero
+        const g1Avg = group1.length > 1 ? Math.round((g1Sum - m1Score) / (group1.length - 1)) : 0;
+        const g2Avg = group2.length > 1 ? Math.round((g2Sum - m2Score) / (group2.length - 1)) : 0;
+
+        const diff1 = Math.abs(m2Score - g1Avg);
+        const diff2 = Math.abs(m1Score - g2Avg);
         
         // Allow swap if it doesn't break the threshold too badly (allow slightly looser threshold for diversity)
         if (diff1 <= config.scoreThreshold * 1.5 && diff2 <= config.scoreThreshold * 1.5) {
             group1[m1Idx] = member2;
             group2[m2Idx] = member1;
+
+            // Update cached sums and invalidate averageScore
+            group1.scoreSum = g1Sum - m1Score + m2Score;
+            group2.scoreSum = g2Sum - m2Score + m1Score;
+            group1.averageScore = undefined;
+            group2.averageScore = undefined;
         }
     }
     
@@ -307,8 +336,20 @@ function addDiversity(groups, config) {
 
 function calculateAverageScore(group) {
     if (!group || group.length === 0) return 0;
+
+    // Return cached average if available
+    if (group.averageScore !== undefined) {
+        return group.averageScore;
+    }
+
     const sum = group.reduce((acc, user) => acc + (user.personalityResults?.score || 0), 0);
-    return Math.round(sum / group.length);
+    const average = Math.round(sum / group.length);
+
+    // Cache both sum and average to avoid redundant calculations
+    group.scoreSum = sum;
+    group.averageScore = average;
+
+    return average;
 }
 
 function calculateScoreRange(group) {
