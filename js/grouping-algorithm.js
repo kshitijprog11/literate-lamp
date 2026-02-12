@@ -267,6 +267,11 @@ function addDiversity(groups, config) {
     
     const swapAttempts = Math.floor(groups.length * config.diversityFactor * 2);
     
+    // Pre-calculate score sums for each group to avoid O(N) recalculation inside the loop
+    const groupSums = groups.map(group =>
+        group.reduce((sum, member) => sum + (member.personalityResults?.score || 0), 0)
+    );
+
     for (let i = 0; i < swapAttempts; i++) {
         // Pick two random groups
         const g1Idx = Math.floor(Math.random() * groups.length);
@@ -287,8 +292,12 @@ function addDiversity(groups, config) {
         const member2 = group2[m2Idx];
         
         // Check if swap is acceptable (scores still within range)
-        const g1Avg = calculateAverageScore(group1.filter((_, idx) => idx !== m1Idx));
-        const g2Avg = calculateAverageScore(group2.filter((_, idx) => idx !== m2Idx));
+        // Optimized: Calculate new average arithmetically instead of filtering array
+        const currentSum1 = groupSums[g1Idx];
+        const currentSum2 = groupSums[g2Idx];
+
+        const g1Avg = Math.round((currentSum1 - (member1.personalityResults?.score || 0)) / (group1.length - 1));
+        const g2Avg = Math.round((currentSum2 - (member2.personalityResults?.score || 0)) / (group2.length - 1));
         
         const diff1 = Math.abs(member2.personalityResults.score - g1Avg);
         const diff2 = Math.abs(member1.personalityResults.score - g2Avg);
@@ -297,6 +306,10 @@ function addDiversity(groups, config) {
         if (diff1 <= config.scoreThreshold * 1.5 && diff2 <= config.scoreThreshold * 1.5) {
             group1[m1Idx] = member2;
             group2[m2Idx] = member1;
+
+            // Update the cached sums
+            groupSums[g1Idx] = currentSum1 - (member1.personalityResults?.score || 0) + (member2.personalityResults?.score || 0);
+            groupSums[g2Idx] = currentSum2 - (member2.personalityResults?.score || 0) + (member1.personalityResults?.score || 0);
         }
     }
     
