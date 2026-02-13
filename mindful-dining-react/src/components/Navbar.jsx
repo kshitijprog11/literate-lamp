@@ -1,4 +1,5 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link as RouterLink, useLocation } from 'react-router-dom'
+import { AppBar, Toolbar, Typography, Button, Container, Box } from '@mui/material'
 
 function Navbar({ onNavigate }) {
   const location = useLocation()
@@ -10,31 +11,67 @@ function Navbar({ onNavigate }) {
     }
   }
 
+  const navItems = isHomePage ? [
+    { label: 'About', action: () => handleNavClick('about'), href: '#about' },
+    { label: 'How It Works', action: () => handleNavClick('how-it-works'), href: '#how-it-works' },
+    { label: 'Contact', action: () => handleNavClick('contact'), href: '#contact' },
+  ] : [
+    { label: 'Home', to: '/' },
+    { label: 'Reserve', to: '/reservation' },
+    { label: 'Admin', to: '/admin-dashboard' },
+  ]
+
   return (
-    <nav className="navbar">
-      <div className="nav-container">
-        <div className="logo">
-          <Link to="/">
-            <h1>Mindful Dining</h1>
-          </Link>
-        </div>
-        <ul className="nav-menu">
-          {isHomePage ? (
-            <>
-              <li><a href="#about" onClick={() => handleNavClick('about')}>About</a></li>
-              <li><a href="#how-it-works" onClick={() => handleNavClick('how-it-works')}>How It Works</a></li>
-              <li><a href="#contact" onClick={() => handleNavClick('contact')}>Contact</a></li>
-            </>
-          ) : (
-            <>
-              <li><Link to="/">Home</Link></li>
-              <li><Link to="/reservation">Reserve</Link></li>
-              <li><Link to="/admin-dashboard">Admin</Link></li>
-            </>
-          )}
-        </ul>
-      </div>
-    </nav>
+    <AppBar
+      position="fixed"
+      color="default"
+      elevation={0}
+      sx={{
+        backgroundColor: 'rgba(250, 250, 249, 0.95)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
+      <Container maxWidth="lg">
+        <Toolbar disableGutters sx={{ justifyContent: 'space-between', height: 76 }}>
+          <Box component={RouterLink} to="/" sx={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <Typography variant="h5" color="primary" sx={{ fontWeight: 700, letterSpacing: '-0.02em' }}>
+              Mindful Dining
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2 }}>
+            {navItems.map((item) => (
+              item.to ? (
+                <Button
+                  key={item.label}
+                  component={RouterLink}
+                  to={item.to}
+                  color="inherit"
+                  sx={{ fontWeight: 500 }}
+                >
+                  {item.label}
+                </Button>
+              ) : (
+                <Button
+                  key={item.label}
+                  href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    item.action();
+                  }}
+                  color="inherit"
+                  sx={{ fontWeight: 500 }}
+                >
+                  {item.label}
+                </Button>
+              )
+            ))}
+          </Box>
+        </Toolbar>
+      </Container>
+    </AppBar>
   )
 }
 

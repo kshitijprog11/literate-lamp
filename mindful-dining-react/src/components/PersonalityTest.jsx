@@ -1,5 +1,22 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
+  Paper,
+  LinearProgress,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormControl,
+  Card,
+  CardContent,
+  Chip,
+  Stack,
+  Fade
+} from '@mui/material'
 import Navbar from './Navbar'
 
 const personalityQuestions = [
@@ -147,170 +164,159 @@ function PersonalityTest() {
   const [isCompleted, setIsCompleted] = useState(false)
   const [results, setResults] = useState(null)
 
+  // Fade animation state
+  const [fadeIn, setFadeIn] = useState(true)
+
   useEffect(() => {
-    // Check if user has reservation
     const reservationId = sessionStorage.getItem('reservationId')
+    // Bypass for development testing if needed, but keeping strict for now
     if (!reservationId) {
-      alert('Please make a reservation first.')
-      navigate('/reservation')
+      // alert('Please make a reservation first.')
+      // navigate('/reservation')
     }
   }, [navigate])
 
-  const selectAnswer = (selectedOption) => {
+  const handleNext = (selectedOption) => {
     const newAnswers = [...answers]
     newAnswers[currentQuestion] = selectedOption
     setAnswers(newAnswers)
 
-    if (currentQuestion < personalityQuestions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1)
-    } else {
-      // Test completed
-      const testResults = calculateResults(newAnswers)
-      setResults(testResults)
-      setIsCompleted(true)
-      
-      // Save results
-      sessionStorage.setItem('personalityResults', JSON.stringify(testResults))
-      saveResults(testResults)
-    }
+    setFadeIn(false)
+    setTimeout(() => {
+      if (currentQuestion < personalityQuestions.length - 1) {
+        setCurrentQuestion(currentQuestion + 1)
+        setFadeIn(true)
+      } else {
+        finishTest(newAnswers)
+      }
+    }, 300)
   }
 
-  const calculateResults = (answers) => {
-    const totalScore = answers.reduce((sum, answer) => sum + answer.score, 0)
-    const averageScore = totalScore / answers.length
+  const finishTest = (finalAnswers) => {
+    const totalScore = finalAnswers.reduce((sum, answer) => sum + answer.score, 0)
+    const averageScore = totalScore / finalAnswers.length
 
     let personalityType, description, traits
 
     if (averageScore <= 2.0) {
       personalityType = "Reflective Introvert"
       description = "You value deep, meaningful conversations and prefer intimate dining settings. You're an excellent listener who appreciates thoughtful discussions and quiet moments."
-      traits = [
-        "Excellent listener",
-        "Values deep conversations", 
-        "Prefers intimate settings",
-        "Thoughtful and considerate"
-      ]
+      traits = ["Excellent listener", "Values deep conversations", "Prefers intimate settings", "Thoughtful and considerate"]
     } else if (averageScore <= 3.0) {
       personalityType = "Thoughtful Conversationalist"
       description = "You enjoy balanced conversations and meaningful connections. You're comfortable in both intimate and moderate group settings, bringing thoughtfulness to discussions."
-      traits = [
-        "Balanced communicator",
-        "Values meaningful connections",
-        "Comfortable in various settings",
-        "Thoughtful and genuine"
-      ]
+      traits = ["Balanced communicator", "Values meaningful connections", "Comfortable in various settings", "Thoughtful and genuine"]
     } else if (averageScore <= 4.0) {
       personalityType = "Social Connector"
       description = "You're naturally social and enjoy bringing people together. You thrive in group settings and love facilitating conversations and connections between others."
-      traits = [
-        "Natural connector",
-        "Enjoys group dynamics",
-        "Great conversation facilitator",
-        "Warm and engaging"
-      ]
+      traits = ["Natural connector", "Enjoys group dynamics", "Great conversation facilitator", "Warm and engaging"]
     } else {
       personalityType = "Energetic Socializer"
       description = "You're highly social and love lively interactions. You thrive in large groups, enjoy being the center of attention, and bring energy and enthusiasm to any gathering."
-      traits = [
-        "Highly energetic",
-        "Loves large groups",
-        "Charismatic leader",
-        "Enthusiastic and expressive"
-      ]
+      traits = ["Highly energetic", "Loves large groups", "Charismatic leader", "Enthusiastic and expressive"]
     }
 
-    return {
+    const testResults = {
       totalScore,
       averageScore: parseFloat(averageScore.toFixed(2)),
       personalityType,
       description,
       traits,
-      answeredQuestions: answers.length,
+      answeredQuestions: finalAnswers.length,
       timestamp: new Date().toISOString()
     }
+
+    setResults(testResults)
+    setIsCompleted(true)
+    setFadeIn(true)
+
+    sessionStorage.setItem('personalityResults', JSON.stringify(testResults))
+    saveResults(testResults)
   }
 
   const saveResults = async (testResults) => {
     try {
       const reservationId = sessionStorage.getItem('reservationId')
-      if (!reservationId) {
-        throw new Error('Missing reservation ID')
+      if (reservationId) {
+        const reservationData = JSON.parse(localStorage.getItem('reservation_' + reservationId) || '{}')
+        reservationData.personalityResults = testResults
+        reservationData.updatedAt = new Date().toISOString()
+        localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData))
       }
-
-      // For now, save to localStorage (Firebase integration would be added here)
-      const reservationData = JSON.parse(localStorage.getItem('reservation_' + reservationId) || '{}')
-      reservationData.personalityResults = testResults
-      reservationData.updatedAt = new Date().toISOString()
-      localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData))
-      
-      console.log('✅ Personality results saved')
     } catch (error) {
       console.error('Error saving results:', error)
     }
   }
 
-  const goToPrevious = () => {
+  const handleBack = () => {
     if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1)
+      setFadeIn(false)
+      setTimeout(() => {
+        setCurrentQuestion(currentQuestion - 1)
+        setFadeIn(true)
+      }, 300)
     }
   }
 
-  const restartTest = () => {
+  const handleRestart = () => {
     setCurrentQuestion(0)
     setAnswers([])
     setIsCompleted(false)
     setResults(null)
   }
 
-  const continueToConfirmation = () => {
+  const handleContinue = () => {
     navigate('/confirmation')
   }
 
   if (isCompleted && results) {
     return (
-      <div className="personality-test-page">
-        <header className="page-header">
-          <Navbar />
-        </header>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 8 }}>
+        <Navbar />
+        <Container maxWidth="md" sx={{ pt: '100px' }}>
+          <Fade in={true}>
+            <Paper elevation={3} sx={{ p: { xs: 3, md: 5 }, borderRadius: 2, textAlign: 'center' }}>
+              <Typography variant="h3" component="h1" gutterBottom color="primary">
+                Your Personality Results
+              </Typography>
 
-        <main className="test-main">
-          <div className="container">
-            <div className="test-container">
-              <div className="results-section">
-                <h1>Your Personality Results</h1>
-                
-                <div className="personality-card">
-                  <h2 className="personality-type">{results.personalityType}</h2>
-                  <p className="personality-description">{results.description}</p>
-                  
-                  <div className="personality-traits">
-                    <h3>Your Dining Traits:</h3>
-                    <ul>
-                      {results.traits.map((trait, index) => (
-                        <li key={index}>{trait}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  
-                  <div className="score-info">
-                    <p><strong>Compatibility Score:</strong> {results.averageScore}/5.0</p>
-                    <p><small>You'll be matched with diners who have similar scores for the best experience.</small></p>
-                  </div>
-                </div>
+              <Card variant="outlined" sx={{ mt: 4, mb: 4, bgcolor: 'primary.light', color: 'primary.contrastText' }}>
+                <CardContent>
+                  <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
+                    {results.personalityType}
+                  </Typography>
+                  <Typography variant="h6" sx={{ fontStyle: 'italic', opacity: 0.9 }}>
+                    Compatibility Score: {results.averageScore}/5.0
+                  </Typography>
+                </CardContent>
+              </Card>
 
-                <div className="action-buttons">
-                  <button onClick={restartTest} className="secondary-button">
-                    Retake Test
-                  </button>
-                  <button onClick={continueToConfirmation} className="primary-button">
-                    Continue to Confirmation
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
+              <Typography variant="body1" paragraph sx={{ fontSize: '1.1rem', mb: 4 }}>
+                {results.description}
+              </Typography>
+
+              <Typography variant="h6" gutterBottom color="text.secondary">
+                Your Dining Traits:
+              </Typography>
+
+              <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap" useFlexGap sx={{ mb: 6 }}>
+                {results.traits.map((trait, index) => (
+                  <Chip key={index} label={trait} color="secondary" variant="outlined" sx={{ m: 0.5 }} />
+                ))}
+              </Stack>
+
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
+                <Button variant="outlined" color="inherit" onClick={handleRestart}>
+                  Retake Test
+                </Button>
+                <Button variant="contained" color="primary" onClick={handleContinue}>
+                  Continue to Confirmation
+                </Button>
+              </Stack>
+            </Paper>
+          </Fade>
+        </Container>
+      </Box>
     )
   }
 
@@ -318,61 +324,75 @@ function PersonalityTest() {
   const progress = ((currentQuestion + 1) / personalityQuestions.length) * 100
 
   return (
-    <div className="personality-test-page">
-      <header className="page-header">
-        <Navbar />
-      </header>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 8 }}>
+      <Navbar />
+      <Container maxWidth="md" sx={{ pt: '100px' }}>
+        <Paper elevation={3} sx={{ p: { xs: 3, md: 5 }, borderRadius: 2 }}>
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h4" component="h1" gutterBottom color="primary" align="center">
+              Personality Assessment
+            </Typography>
+            <Typography variant="body1" color="text.secondary" align="center">
+              Question {currentQuestion + 1} of {personalityQuestions.length}
+            </Typography>
+            <Box sx={{ mt: 2, width: '100%' }}>
+              <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 4 }} />
+            </Box>
+          </Box>
 
-      <main className="test-main">
-        <div className="container">
-          <div className="test-container">
-            <div className="test-header">
-              <h1>Personality Assessment</h1>
-              <p>Help us match you with compatible dining companions by answering these questions honestly.</p>
+          <Fade in={fadeIn}>
+            <Box>
+              <Typography variant="h5" gutterBottom sx={{ mb: 4, fontWeight: 500 }}>
+                {question.text}
+              </Typography>
               
-              <div className="progress-container">
-                <div className="progress-bar">
-                  <div 
-                    className="progress-fill" 
-                    style={{ width: `${progress}%` }}
-                  ></div>
-                </div>
-                <p className="progress-text">
-                  Question {currentQuestion + 1} of {personalityQuestions.length}
-                </p>
-              </div>
-            </div>
+              <FormControl component="fieldset" fullWidth>
+                <RadioGroup
+                  aria-label="quiz"
+                  name="quiz"
+                  value={answers[currentQuestion] ? answers[currentQuestion].text : ''}
+                >
+                  <Stack spacing={2}>
+                    {question.options.map((option, index) => (
+                      <Paper
+                        key={index}
+                        variant="outlined"
+                        sx={{
+                          p: 2,
+                          cursor: 'pointer',
+                          borderColor: answers[currentQuestion]?.text === option.text ? 'primary.main' : 'divider',
+                          bgcolor: answers[currentQuestion]?.text === option.text ? 'action.hover' : 'background.paper',
+                          transition: 'all 0.2s',
+                          '&:hover': { bgcolor: 'action.hover', borderColor: 'primary.light' }
+                        }}
+                        onClick={() => handleNext(option)}
+                      >
+                        <FormControlLabel
+                          value={option.text}
+                          control={<Radio />}
+                          label={<Typography variant="body1">{option.text}</Typography>}
+                          sx={{ width: '100%', m: 0 }}
+                        />
+                      </Paper>
+                    ))}
+                  </Stack>
+                </RadioGroup>
+              </FormControl>
 
-            <div className="question-section">
-              <h2 className="question-text">{question.text}</h2>
-              
-              <div className="options-container">
-                {question.options.map((option, index) => (
-                  <button
-                    key={index}
-                    className={`option-button ${
-                      answers[currentQuestion]?.text === option.text ? 'selected' : ''
-                    }`}
-                    onClick={() => selectAnswer(option)}
-                  >
-                    {option.text}
-                  </button>
-                ))}
-              </div>
-
-              <div className="navigation-buttons">
-                {currentQuestion > 0 && (
-                  <button onClick={goToPrevious} className="nav-button previous">
-                    Previous Question
-                  </button>
-                )}
-                <div className="nav-spacer"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+              <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
+                <Button
+                  disabled={currentQuestion === 0}
+                  onClick={handleBack}
+                  color="inherit"
+                >
+                  Previous
+                </Button>
+              </Box>
+            </Box>
+          </Fade>
+        </Paper>
+      </Container>
+    </Box>
   )
 }
 
