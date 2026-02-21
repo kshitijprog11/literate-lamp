@@ -2,7 +2,7 @@ import { personalityQuestions, calculatePersonalityScore, determinePersonalityTy
 export { personalityQuestions, calculatePersonalityScore, determinePersonalityType, buildPersonalityAnswerSummary } from './personality-data.js';
 
 // Personality test functionality
-document.addEventListener('DOMContentLoaded', function() {
+const initPersonalityTest = function() {
     const questionContainer = document.getElementById('question-container');
     const resultsContainer = document.getElementById('results-container');
     const testContent = document.querySelector('.test-content');
@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentQuestionIndex = 0;
     let answers = [];
     let testStartTime = Date.now();
+    let cachedQuestionElements = null;
     
     // Initialize the test
     initializeTest();
@@ -100,30 +101,71 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function showQuestion(index) {
-        const question = personalityQuestions[index];
-        
+    function createQuestionStructure() {
         questionContainer.innerHTML = `
             <div class="question">
-                <h3>${question.text}</h3>
+                <h3></h3>
                 <div class="options">
-                    ${question.options.map((option, optionIndex) => `
-                        <label class="option ${answers[index] === optionIndex ? 'selected' : ''}">
-                            <input type="radio" name="question-${index}" value="${optionIndex}" 
-                                   ${answers[index] === optionIndex ? 'checked' : ''}>
-                            <span>${option.text}</span>
+                    ${Array(4).fill(0).map((_, i) => `
+                        <label class="option" data-option-index="${i}">
+                            <input type="radio" name="question-option" value="${i}">
+                            <span></span>
                         </label>
                     `).join('')}
                 </div>
             </div>
         `;
 
-        // Attach event listeners
-        const inputs = questionContainer.querySelectorAll('input[type="radio"]');
-        inputs.forEach(input => {
-            input.addEventListener('change', () => {
-                selectAnswer(index, parseInt(input.value));
+        const questionEl = questionContainer.querySelector('.question');
+        const h3 = questionEl.querySelector('h3');
+        const optionsDiv = questionEl.querySelector('.options');
+        const labels = Array.from(optionsDiv.querySelectorAll('.option'));
+
+        cachedQuestionElements = {
+            h3,
+            labels: labels.map(label => ({
+                label,
+                input: label.querySelector('input'),
+                span: label.querySelector('span')
+            }))
+        };
+
+        // Attach event listeners once
+        cachedQuestionElements.labels.forEach((el, i) => {
+            el.input.addEventListener('change', () => {
+                selectAnswer(currentQuestionIndex, i);
             });
+        });
+    }
+
+    function showQuestion(index) {
+        if (!cachedQuestionElements) {
+            createQuestionStructure();
+        }
+
+        const question = personalityQuestions[index];
+        const answer = answers[index];
+
+        cachedQuestionElements.h3.textContent = question.text;
+
+        cachedQuestionElements.labels.forEach((el, i) => {
+            const option = question.options[i];
+
+            if (option) {
+                el.label.style.display = '';
+                el.span.textContent = option.text;
+
+                // Update selection state
+                if (answer === i) {
+                    el.label.classList.add('selected');
+                    el.input.checked = true;
+                } else {
+                    el.label.classList.remove('selected');
+                    el.input.checked = false;
+                }
+            } else {
+                el.label.style.display = 'none';
+            }
         });
     }
     
@@ -262,5 +304,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-});
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPersonalityTest);
+} else {
+    initPersonalityTest();
+}
 
