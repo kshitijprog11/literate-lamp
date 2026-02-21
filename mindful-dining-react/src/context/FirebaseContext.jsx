@@ -38,10 +38,27 @@ export function FirebaseProvider({ children }) {
       throw new Error('Missing required reservation data')
     }
 
+    // Helper to update index
+    const updateIndex = (key) => {
+      try {
+        const indexKey = '__index_reservations__'
+        const existingIndex = localStorage.getItem(indexKey)
+        const keys = existingIndex ? JSON.parse(existingIndex) : []
+        if (!keys.includes(key)) {
+          keys.push(key)
+          localStorage.setItem(indexKey, JSON.stringify(keys))
+        }
+      } catch (e) {
+        console.warn('Error updating reservation index', e)
+      }
+    }
+
     if (fastTestingMode || !db) {
       console.log('⚡ Fallback mode: Using localStorage')
       const reservationId = 'res_' + Date.now()
-      localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData))
+      const key = 'reservation_' + reservationId
+      localStorage.setItem(key, JSON.stringify(reservationData))
+      updateIndex(key)
       console.log('✅ Reservation saved locally with ID:', reservationId)
       return reservationId
     }
@@ -61,7 +78,9 @@ export function FirebaseProvider({ children }) {
     } catch (error) {
       console.warn('⚠️ Firebase failed, using localStorage fallback:', error.message)
       const reservationId = 'res_' + Date.now()
-      localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData))
+      const key = 'reservation_' + reservationId
+      localStorage.setItem(key, JSON.stringify(reservationData))
+      updateIndex(key)
       console.log('✅ Reservation saved locally with ID:', reservationId)
       return reservationId
     }
@@ -69,19 +88,48 @@ export function FirebaseProvider({ children }) {
 
   const getReservations = useCallback(async () => {
     if (fastTestingMode || !db) {
-      // Get from localStorage
+      // Get from localStorage using index optimization
       const reservations = []
+      const indexKey = '__index_reservations__'
+      const index = localStorage.getItem(indexKey)
+
+      if (index) {
+        try {
+          const keys = JSON.parse(index)
+          for (const key of keys) {
+            const item = localStorage.getItem(key)
+            if (item) {
+              try {
+                const data = JSON.parse(item)
+                reservations.push({ id: key.replace('reservation_', ''), ...data })
+              } catch (e) {
+                console.warn('Error parsing item from index:', key)
+              }
+            }
+          }
+          return reservations
+        } catch (e) {
+          console.warn('Index corrupted, rebuilding...')
+        }
+      }
+
+      // Fallback: Full scan and rebuild index
+      const keys = []
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i)
         if (key?.startsWith('reservation_')) {
           try {
             const data = JSON.parse(localStorage.getItem(key))
             reservations.push({ id: key.replace('reservation_', ''), ...data })
+            keys.push(key)
           } catch (error) {
             console.warn('Error parsing localStorage reservation:', error)
           }
         }
       }
+
+      // Save index
+      localStorage.setItem(indexKey, JSON.stringify(keys))
       return reservations
     }
 

@@ -181,7 +181,34 @@ async function getAllReservations() {
 function getLocalStorageReservations() {
     console.log('💾 Checking localStorage for reservations...');
     const reservations = [];
+    const indexKey = '__index_reservations__';
+    const index = localStorage.getItem(indexKey);
+
+    if (index) {
+        try {
+            const keys = JSON.parse(index);
+            // Verify if keys still exist in storage
+            for (const key of keys) {
+                const item = localStorage.getItem(key);
+                if (item) {
+                    try {
+                        const data = JSON.parse(item);
+                        console.log('📄 Found localStorage reservation:', key, data);
+                        reservations.push({ id: key.replace('reservation_', ''), ...data });
+                    } catch (error) {
+                        console.error('❌ Error parsing reservation:', key, error);
+                    }
+                }
+            }
+            console.log(`📦 Found ${reservations.length} reservations using index`);
+            return reservations;
+        } catch (e) {
+            console.warn('Index corrupted or invalid, rebuilding...');
+        }
+    }
     
+    // Fallback: Full scan and rebuild index
+    const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key.startsWith('reservation_')) {
@@ -189,13 +216,16 @@ function getLocalStorageReservations() {
                 const data = JSON.parse(localStorage.getItem(key));
                 console.log('📄 Found localStorage reservation:', key, data);
                 reservations.push({ id: key.replace('reservation_', ''), ...data });
+                keys.push(key);
             } catch (error) {
                 console.error('❌ Error parsing reservation:', key, error);
             }
         }
     }
     
-    console.log(`📦 Found ${reservations.length} reservations in localStorage`);
+    // Save index for next time
+    localStorage.setItem(indexKey, JSON.stringify(keys));
+    console.log(`📦 Found ${reservations.length} reservations in localStorage (index built)`);
     return reservations;
 }
 
