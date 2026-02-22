@@ -17,18 +17,18 @@ class TableAssignmentManager {
             const urlParams = new URLSearchParams(window.location.search);
             const email = urlParams.get('email');
             const reservationId = urlParams.get('id');
-            
+
             if (!email && !reservationId) {
                 this.showErrorState('no-identifier');
                 return;
             }
-            
+
             // Show loading state
             this.showLoadingState();
-            
+
             // Fetch assignment data
             await this.loadAssignmentData(email, reservationId);
-            
+
         } catch (error) {
             console.error('Error initializing table assignment:', error);
             this.showErrorState('general-error');
@@ -41,36 +41,36 @@ class TableAssignmentManager {
     async loadAssignmentData(email, reservationId) {
         try {
             let userReservation = null;
-            
+
             // Find user's reservation
             if (reservationId) {
                 userReservation = await this.getReservationById(reservationId);
             } else if (email) {
                 userReservation = await this.getReservationByEmail(email);
             }
-            
+
             if (!userReservation) {
                 this.showErrorState('no-reservation');
                 return;
             }
-            
+
             // Check if personality test is completed
             if (!userReservation.personalityResults) {
                 this.showErrorState('no-personality-test');
                 return;
             }
-            
+
             // Find user's group assignment
             const groupAssignment = await this.getGroupAssignment(userReservation.email);
-            
+
             if (!groupAssignment) {
                 this.showErrorState('no-group-assignment');
                 return;
             }
-            
+
             // Get full group member details
             const groupMembers = await this.getGroupMemberDetails(groupAssignment.members);
-            
+
             // Prepare assignment data
             this.assignmentData = {
                 user: userReservation,
@@ -78,14 +78,15 @@ class TableAssignmentManager {
                 members: groupMembers,
                 event: {
                     date: this.formatDate(userReservation.eventDate),
-                    time: userReservation.eventTime || '7:30 PM',
+                    // Adding warning just in case we hit the fallback, and standardizing fallback to 7:00 PM
+                    time: userReservation.timeSlot || (() => { console.warn("Missing time slot. Defaulting to 7:00 PM."); return '7:00 PM'; })(),
                     location: 'The Mindful Dining Restaurant'
                 }
             };
-            
+
             // Display the assignment
             this.showAssignmentContent();
-            
+
         } catch (error) {
             console.error('Error loading assignment data:', error);
             this.showErrorState('general-error');
@@ -109,9 +110,9 @@ class TableAssignmentManager {
             .orderBy('createdAt', 'desc')
             .limit(1)
             .get();
-        
+
         if (snapshot.empty) return null;
-        
+
         const doc = snapshot.docs[0];
         return { id: doc.id, ...doc.data() };
     }
@@ -124,9 +125,9 @@ class TableAssignmentManager {
             .where('members', 'array-contains', userEmail)
             .limit(1)
             .get();
-        
+
         if (snapshot.empty) return null;
-        
+
         const doc = snapshot.docs[0];
         return { id: doc.id, ...doc.data() };
     }
@@ -153,7 +154,7 @@ class TableAssignmentManager {
                 return null;
             }
         });
-        
+
         const results = await Promise.all(promises);
         return results.filter(result => result !== null);
     }
@@ -174,11 +175,11 @@ class TableAssignmentManager {
         const loadingState = document.getElementById('loading-state');
         const errorState = document.getElementById('error-state');
         const assignmentContent = document.getElementById('assignment-content');
-        
+
         loadingState.style.display = 'none';
         assignmentContent.style.display = 'none';
         errorState.style.display = 'block';
-        
+
         // Customize error message based on type
         const errorMessages = {
             'no-identifier': {
@@ -202,9 +203,9 @@ class TableAssignmentManager {
                 message: 'Something went wrong. Please try again later or contact support.'
             }
         };
-        
+
         const error = errorMessages[errorType] || errorMessages['general-error'];
-        
+
         errorState.querySelector('h2').textContent = error.title;
         errorState.querySelector('p').textContent = error.message;
     }
@@ -216,7 +217,7 @@ class TableAssignmentManager {
         document.getElementById('loading-state').style.display = 'none';
         document.getElementById('error-state').style.display = 'none';
         document.getElementById('assignment-content').style.display = 'block';
-        
+
         // Populate real data
         this.populateAssignmentData();
     }
@@ -226,19 +227,19 @@ class TableAssignmentManager {
      */
     populateAssignmentData() {
         const data = this.assignmentData;
-        
+
         // Event details
         document.getElementById('event-date').textContent = data.event.date;
         document.getElementById('event-time').textContent = data.event.time;
         document.getElementById('event-location').textContent = data.event.location;
-        
+
         // Table assignment
         document.getElementById('table-number').textContent = data.group.tableAssignment || `Table ${data.group.tableNumber}`;
-        
+
         // Group members (excluding current user)
         const companions = data.members.filter(member => member.email !== data.user.email);
         const companionsList = document.getElementById('companions-list');
-        
+
         companionsList.innerHTML = companions.map(companion => `
             <div class="companion-card">
                 <h4>${companion.name}</h4>
@@ -247,7 +248,7 @@ class TableAssignmentManager {
                 <p><strong>Interests:</strong> ${companion.interests.join(', ') || 'Getting to know new people'}</p>
             </div>
         `).join('');
-        
+
         // Group compatibility
         const allScores = data.members.map(m => m.personalityResults?.score || 0);
         const avgScore = Math.round(allScores.reduce((sum, score) => sum + score, 0) / allScores.length);
@@ -269,7 +270,7 @@ class TableAssignmentManager {
 }
 
 // Initialize when page loads (if Firebase is available)
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Check if Firebase is loaded
     if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
         const assignmentManager = new TableAssignmentManager();
@@ -287,12 +288,12 @@ function loadDemoData() {
     const urlParams = new URLSearchParams(window.location.search);
     const email = urlParams.get('email');
     const reservationId = urlParams.get('id');
-    
+
     setTimeout(() => {
         const loadingState = document.getElementById('loading-state');
         const errorState = document.getElementById('error-state');
         const assignmentContent = document.getElementById('assignment-content');
-        
+
         if (email || reservationId) {
             loadingState.style.display = 'none';
             assignmentContent.style.display = 'block';
@@ -308,10 +309,10 @@ function populateDemoData() {
     // Event details
     document.getElementById('event-date').textContent = 'Saturday, December 16, 2023';
     document.getElementById('event-time').textContent = '7:30 PM';
-    
+
     // Table assignment
     document.getElementById('table-number').textContent = 'Table 3';
-    
+
     // Sample dining companions
     const companions = [
         {
@@ -322,7 +323,7 @@ function populateDemoData() {
         },
         {
             name: 'Michael Chen',
-            personality: 'Balanced Diner', 
+            personality: 'Balanced Diner',
             score: 72,
             interests: 'Art, Music, Cooking'
         },
@@ -333,7 +334,7 @@ function populateDemoData() {
             interests: 'Volunteering, Nature, Yoga'
         }
     ];
-    
+
     const companionsList = document.getElementById('companions-list');
     companionsList.innerHTML = companions.map(companion => `
         <div class="companion-card">
@@ -343,7 +344,7 @@ function populateDemoData() {
             <p><strong>Interests:</strong> ${companion.interests}</p>
         </div>
     `).join('');
-    
+
     // Group compatibility
     const avgScore = Math.round(companions.reduce((sum, c) => sum + c.score, 0) / companions.length);
     document.getElementById('compatibility-score').textContent = `${avgScore}%`;

@@ -2,7 +2,7 @@ import { personalityQuestions, calculatePersonalityScore, determinePersonalityTy
 export { personalityQuestions, calculatePersonalityScore, determinePersonalityType, buildPersonalityAnswerSummary } from './personality-data.js';
 
 // Personality test functionality
-const initPersonalityTest = function() {
+const initPersonalityTest = function () {
     const questionContainer = document.getElementById('question-container');
     const resultsContainer = document.getElementById('results-container');
     const testContent = document.querySelector('.test-content');
@@ -18,12 +18,21 @@ const initPersonalityTest = function() {
 
     let currentQuestionIndex = 0;
     let answers = [];
-    let testStartTime = Date.now();
+
+    // Check if there is an existing start time in Session Storage
+    let testStartTime = sessionStorage.getItem('testStartTime');
+    if (!testStartTime) {
+        testStartTime = Date.now();
+        sessionStorage.setItem('testStartTime', testStartTime);
+    } else {
+        testStartTime = parseInt(testStartTime, 10);
+    }
+
     let cachedQuestionElements = null;
-    
+
     // Initialize the test
     initializeTest();
-    
+
     function initializeTest() {
         // Check if user has a reservation
         const reservationId = sessionStorage.getItem('reservationId');
@@ -32,16 +41,16 @@ const initPersonalityTest = function() {
             window.location.href = 'reservation.html';
             return;
         }
-        
+
         // Initialize answers array
         answers = new Array(personalityQuestions.length).fill(null);
-        
+
         // Show first question
         showQuestion(0);
         updateProgress();
         setupEventListeners();
     }
-    
+
     function setupEventListeners() {
         if (prevButton) {
             prevButton.addEventListener('click', () => {
@@ -53,7 +62,7 @@ const initPersonalityTest = function() {
                 }
             });
         }
-        
+
         if (nextButton) {
             nextButton.addEventListener('click', () => {
                 if (isCurrentQuestionAnswered()) {
@@ -66,7 +75,7 @@ const initPersonalityTest = function() {
                 }
             });
         }
-        
+
         if (submitButton) {
             submitButton.addEventListener('click', () => {
                 if (allQuestionsAnswered()) {
@@ -79,15 +88,15 @@ const initPersonalityTest = function() {
             });
         }
     }
-    
+
     function addSaveButtonListener() {
         const saveButton = document.getElementById('save-results');
-        
+
         if (saveButton) {
             // Remove any existing listeners
             const newSaveButton = saveButton.cloneNode(true);
             saveButton.parentNode.replaceChild(newSaveButton, saveButton);
-            
+
             // Add fresh listener
             newSaveButton.addEventListener('click', async () => {
                 try {
@@ -100,7 +109,7 @@ const initPersonalityTest = function() {
             });
         }
     }
-    
+
     function createQuestionStructure() {
         questionContainer.innerHTML = `
             <div class="question">
@@ -168,10 +177,10 @@ const initPersonalityTest = function() {
             }
         });
     }
-    
+
     function selectAnswer(questionIndex, optionIndex) {
         answers[questionIndex] = optionIndex;
-        
+
         // Update visual selection
         const options = questionContainer.querySelectorAll('.option');
         options.forEach(option => {
@@ -182,10 +191,10 @@ const initPersonalityTest = function() {
                 option.classList.remove('selected');
             }
         });
-        
+
         updateNavigation();
     }
-    
+
     function updateProgress() {
         const progress = ((currentQuestionIndex + 1) / personalityQuestions.length) * 100;
         if (progressFill) {
@@ -195,16 +204,16 @@ const initPersonalityTest = function() {
             progressText.textContent = `Question ${currentQuestionIndex + 1} of ${personalityQuestions.length}`;
         }
     }
-    
+
     function updateNavigation() {
         if (prevButton) {
             prevButton.disabled = currentQuestionIndex === 0;
         }
-        
+
         if (!nextButton || !submitButton) {
             return;
         }
-        
+
         if (currentQuestionIndex === personalityQuestions.length - 1) {
             nextButton.classList.add('hidden');
             submitButton.classList.remove('hidden');
@@ -213,23 +222,23 @@ const initPersonalityTest = function() {
             submitButton.classList.add('hidden');
         }
     }
-    
+
     function isCurrentQuestionAnswered() {
         return answers[currentQuestionIndex] !== null;
     }
-    
+
     function allQuestionsAnswered() {
         return answers.every(answer => answer !== null);
     }
-    
+
     function calculateAndShowResults() {
         const score = calculatePersonalityScore(answers);
         const personality = determinePersonalityType(score);
-        
+
         // Hide test content, show results
         testContent.classList.add('hidden');
         resultsContainer.classList.remove('hidden');
-        
+
         // Display results
         document.getElementById('personality-results').innerHTML = `
             <div class="personality-score">${score}</div>
@@ -242,7 +251,7 @@ const initPersonalityTest = function() {
                 </ul>
             </div>
         `;
-        
+
         // Store results for later use
         sessionStorage.setItem('personalityResults', JSON.stringify({
             score,
@@ -251,17 +260,19 @@ const initPersonalityTest = function() {
             completedAt: new Date().toISOString(),
             timeSpent: Date.now() - testStartTime
         }));
+
+        sessionStorage.removeItem('testStartTime');
     }
-    
+
     async function saveResults() {
         try {
             const reservationId = sessionStorage.getItem('reservationId');
             const results = JSON.parse(sessionStorage.getItem('personalityResults'));
-            
+
             if (!reservationId || !results) {
                 throw new Error('Missing reservation ID or results');
             }
-            
+
             // Try Firebase first (for real data sharing), then localStorage fallback
             if (window.FAST_TESTING_MODE || typeof window.db === 'undefined' || typeof window.updateDoc === 'undefined') {
                 const reservationData = JSON.parse(localStorage.getItem('reservation_' + reservationId) || '{}');
@@ -272,7 +283,7 @@ const initPersonalityTest = function() {
                 localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
                 return;
             }
-            
+
             // Firebase mode (for real compatibility matching)
             try {
                 // Add 3-second timeout for Firebase
@@ -282,12 +293,12 @@ const initPersonalityTest = function() {
                     status: 'Confirmed',
                     updatedAt: new Date().toISOString()
                 });
-                const timeoutPromise = new Promise((_, reject) => 
+                const timeoutPromise = new Promise((_, reject) =>
                     setTimeout(() => reject(new Error('Firebase timeout')), 3000)
                 );
-                
+
                 await Promise.race([updatePromise, timeoutPromise]);
-                
+
             } catch (firebaseError) {
                 console.warn('Firebase save failed, using localStorage fallback:', firebaseError.message);
                 const reservationData = JSON.parse(localStorage.getItem('reservation_' + reservationId) || '{}');
@@ -297,13 +308,13 @@ const initPersonalityTest = function() {
                 reservationData.updatedAt = new Date().toISOString();
                 localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
             }
-            
+
         } catch (error) {
             console.error('Error saving results:', error);
             alert('Error saving results: ' + error.message);
         }
     }
-    
+
 };
 
 if (document.readyState === 'loading') {

@@ -190,29 +190,29 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 function validateForm(data) {
     const requiredFields = ['firstName', 'lastName', 'email', 'eventDate', 'timeSlot'];
-    
+
     // Check for empty fields
     for (const field of requiredFields) {
         if (!data[field] || data[field].trim() === '') {
             return false;
         }
     }
-    
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(data.email)) {
         throw new Error('Please enter a valid email address');
     }
-    
+
     // Validate date is in the future
     const selectedDate = new Date(data.eventDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     if (selectedDate < today) {
         throw new Error('Please select a future date');
     }
-    
+
     return true;
 }
 
@@ -226,18 +226,18 @@ async function saveReservation(reservationData) {
     if (!reservationData.email || !reservationData.firstName) {
         throw new Error('Missing required reservation data');
     }
-    
+
     // Try Firebase first if available
     if (!window.FAST_TESTING_MODE && typeof window.db !== 'undefined' && window.addDoc && window.collection) {
         try {
             // Add 5-second timeout for Firebase operation
             const savePromise = window.addDoc(window.collection(window.db, 'reservations'), reservationData);
-            const timeoutPromise = new Promise((_, reject) => 
+            const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Database timeout')), 5000)
             );
-            
+
             const docRef = await Promise.race([savePromise, timeoutPromise]);
-            
+
             // STEP 1: Save the Reservation ID so the personality test
             // can later update the original document instead of creating a new one.
             try {
@@ -248,13 +248,13 @@ async function saveReservation(reservationData) {
             }
 
             return docRef.id;
-            
+
         } catch (error) {
             console.warn('Database save failed, falling back to local storage:', error.message);
             // Fall through to localStorage
         }
     }
-    
+
     // LocalStorage fallback (for offline or demo mode)
     const reservationId = 'res_' + Date.now();
     try {
@@ -506,15 +506,15 @@ function setupPhoneFormatting() {
 function setupRealTimeValidation() {
     const requiredInputs = document.querySelectorAll('input[required], select[required]');
     requiredInputs.forEach(input => {
-        input.addEventListener('blur', function() {
+        input.addEventListener('blur', function () {
             if (this.value.trim() === '') {
                 this.style.borderColor = '#d32f2f';
             } else {
                 this.style.borderColor = '#4caf50';
             }
         });
-        
-        input.addEventListener('input', function() {
+
+        input.addEventListener('input', function () {
             if (this.style.borderColor === 'rgb(211, 47, 47)' && this.value.trim() !== '') {
                 this.style.borderColor = '#e0e0e0';
             }
@@ -527,6 +527,13 @@ function setupRealTimeValidation() {
  * @param {Object} data - The reservation data
  */
 async function sendConfirmationEmail(data) {
+    // Wait for EmailJS to load (up to 3 seconds) just in case network is slow
+    let retries = 30;
+    while (typeof emailjs === 'undefined' && retries > 0) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        retries--;
+    }
+
     // Check if EmailJS is available
     if (typeof emailjs === 'undefined') {
         console.warn('EmailJS not loaded, skipping email');
@@ -537,7 +544,7 @@ async function sendConfirmationEmail(data) {
         const serviceID = 'service_xmmwg4f';
         const templateID = 'template_0fln8lu';
         const publicKey = 'bBneJjbjP_6-Qzbpx';
-        
+
         // Initialize EmailJS explicitly to be safe
         emailjs.init(publicKey);
 

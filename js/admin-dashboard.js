@@ -757,9 +757,15 @@ async function sendTableAssignments() {
         publicKey: `"${publicKey}"`
     });
 
-    // 1. Init - Ensure EmailJS is loaded and initialized
+    // 1. Init - Wait for EmailJS to load (up to 3 seconds)
+    let initRetries = 30;
+    while (typeof emailjs === 'undefined' && initRetries > 0) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        initRetries--;
+    }
+
     if (typeof emailjs === 'undefined') {
-        alert('EmailJS not loaded. Please refresh the page.');
+        alert('EmailJS not loaded. Please try again or check your connection.');
         return;
     }
 
