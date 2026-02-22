@@ -1,5 +1,5 @@
 // Admin Dashboard JavaScript
-import { convertToCSV, downloadCSV } from './utils.js';
+import { convertToCSV, downloadCSV } from './utils.js?v=2';
 
 let currentReservations = [];
 let currentGroups = [];
