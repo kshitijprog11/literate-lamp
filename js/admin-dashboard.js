@@ -3,7 +3,7 @@ let currentReservations = [];
 let currentGroups = [];
 const GROUPED_EVENTS_COLLECTION = 'grouped_events';
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Try to initialize immediately if Firebase is ready
     if (typeof window.db !== 'undefined') {
         initializeDashboard();
@@ -21,12 +21,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Make this function available globally so Firebase can call it
-window.initializeDashboard = function() {
+window.initializeDashboard = function () {
     // Check if grouping algorithm is loaded
     if (typeof window.GroupingAlgorithm === 'undefined') {
         console.warn('Grouping algorithm not yet loaded');
     }
-    
+
     loadDashboardData();
 };
 
@@ -36,18 +36,18 @@ function showSection(sectionName) {
     document.querySelectorAll('.admin-section').forEach(section => {
         section.classList.add('hidden');
     });
-    
+
     // Remove active class from all nav buttons
     document.querySelectorAll('.admin-nav button').forEach(button => {
         button.classList.remove('active');
     });
-    
+
     // Show selected section
     document.getElementById(sectionName + '-section').classList.remove('hidden');
     document.getElementById('nav-' + sectionName).classList.add('active');
-    
+
     // Load section-specific data
-    switch(sectionName) {
+    switch (sectionName) {
         case 'overview':
             loadDashboardData();
             break;
@@ -76,7 +76,7 @@ function updateStatistics() {
     const completedTests = currentReservations.filter(r => r.personalityResults).length;
     const activeGroups = currentGroups.length;
     const upcomingEvents = getUpcomingEventsCount();
-    
+
     document.getElementById('total-reservations').textContent = totalReservations;
     document.getElementById('completed-tests').textContent = completedTests;
     document.getElementById('active-groups').textContent = activeGroups;
@@ -86,28 +86,28 @@ function updateStatistics() {
 function getUpcomingEventsCount() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     const upcomingDates = new Set(
         currentReservations
             .filter(r => new Date(r.eventDate) >= today)
             .map(r => r.eventDate)
     );
-    
+
     return upcomingDates.size;
 }
 
 function loadRecentActivity() {
     const recentContainer = document.getElementById('recent-activity');
-    
+
     const recentReservations = currentReservations
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         .slice(0, 5);
-    
+
     if (recentReservations.length === 0) {
         recentContainer.innerHTML = '<div class="no-data">No recent activity</div>';
         return;
     }
-    
+
     const html = recentReservations.map(reservation => {
         const date = new Date(reservation.createdAt).toLocaleDateString();
         const testStatus = reservation.personalityTestStatus || 'Pending';
@@ -125,7 +125,7 @@ function loadRecentActivity() {
             </div>
         `;
     }).join('');
-    
+
     recentContainer.innerHTML = html;
 }
 
@@ -133,10 +133,10 @@ function loadRecentActivity() {
 async function loadReservations() {
     // Show loading state
     if (document.getElementById('reservations-container')) {
-        document.getElementById('reservations-container').innerHTML = 
+        document.getElementById('reservations-container').innerHTML =
             '<div class="loading">Loading reservations...</div>';
     }
-    
+
     try {
         const reservations = await getAllReservations();
         currentReservations = reservations;
@@ -144,7 +144,7 @@ async function loadReservations() {
     } catch (error) {
         console.error('Error loading reservations:', error);
         if (document.getElementById('reservations-container')) {
-            document.getElementById('reservations-container').innerHTML = 
+            document.getElementById('reservations-container').innerHTML =
                 '<div class="no-data">Error loading reservations. Check console for details.</div>';
         }
     }
@@ -154,17 +154,17 @@ async function getAllReservations() {
     if (typeof window.db === 'undefined') {
         return getLocalStorageReservations();
     }
-    
+
     try {
         const querySnapshot = await window.getDocs(window.collection(window.db, 'reservations'));
         const reservations = [];
-        
+
         querySnapshot.forEach((doc) => {
             reservations.push({ id: doc.id, ...doc.data() });
         });
-        
+
         return reservations;
-        
+
     } catch (error) {
         console.error('Firebase error, falling back to localStorage:', error);
         return getLocalStorageReservations();
@@ -173,7 +173,7 @@ async function getAllReservations() {
 
 function getLocalStorageReservations() {
     const reservations = [];
-    
+
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key.startsWith('reservation_')) {
@@ -185,18 +185,18 @@ function getLocalStorageReservations() {
             }
         }
     }
-    
+
     return reservations;
 }
 
 function displayReservations(reservations) {
     const container = document.getElementById('reservations-container');
-    
+
     if (reservations.length === 0) {
         container.innerHTML = '<div class="no-data">No reservations found</div>';
         return;
     }
-    
+
     const html = `
         <table class="reservations-table">
             <thead>
@@ -216,16 +216,16 @@ function displayReservations(reservations) {
                         <td>${reservation.email}</td>
                         <td>${reservation.eventDate}</td>
                         <td>${reservation.timeSlot}</td>
-                        <td>${reservation.personalityResults ? 
-                            `<span style="color: green;">✓ Completed (${reservation.personalityResults.score})</span>` : 
-                            '<span style="color: orange;">⏳ Pending</span>'}</td>
+                        <td>${reservation.personalityResults ?
+            `<span style="color: green;">✓ Completed (${reservation.personalityResults.score})</span>` :
+            '<span style="color: orange;">⏳ Pending</span>'}</td>
                         <td>${new Date(reservation.createdAt).toLocaleDateString()}</td>
                     </tr>
                 `).join('')}
             </tbody>
         </table>
     `;
-    
+
     container.innerHTML = html;
 }
 
@@ -235,7 +235,7 @@ function filterReservations() {
         displayReservations(currentReservations);
         return;
     }
-    
+
     const filtered = currentReservations.filter(r => r.eventDate === filterDate);
     displayReservations(filtered);
 }
@@ -254,35 +254,35 @@ function exportReservations() {
         alert('No reservations to export');
         return;
     }
-    
+
     const csv = convertToCSV(currentReservations, [
         'firstName', 'lastName', 'email', 'eventDate', 'timeSlot', 'createdAt'
     ]);
-    
+
     downloadCSV(csv, 'reservations.csv');
 }
 
 // Grouping Section
 function loadReservationsForGrouping() {
     const selectedDate = document.getElementById('grouping-date').value;
-    
+
     if (!selectedDate) {
         return;
     }
-    
-    const reservationsForDate = currentReservations.filter(r => 
+
+    const reservationsForDate = currentReservations.filter(r =>
         r.eventDate === selectedDate && r.personalityResults
     );
-    
+
     const container = document.getElementById('grouping-preview');
-    
+
     if (reservationsForDate.length === 0) {
         container.innerHTML = '<div class="no-data">No reservations with completed personality tests for this date</div>';
         document.getElementById('create-groups-btn').disabled = true;
         document.getElementById('preview-groups-btn').disabled = true;
         return;
     }
-    
+
     container.innerHTML = `
         <h4>Available for Grouping (${reservationsForDate.length} people):</h4>
         <div style="max-height: 300px; overflow-y: auto; border: 1px solid #e0e0e0; padding: 15px; margin-top: 10px;">
@@ -294,7 +294,7 @@ function loadReservationsForGrouping() {
             `).join('')}
         </div>
     `;
-    
+
     document.getElementById('create-groups-btn').disabled = false;
     document.getElementById('preview-groups-btn').disabled = false;
 }
@@ -302,13 +302,13 @@ function loadReservationsForGrouping() {
 function previewGroups() {
     try {
         const groups = generateGroupsForDate();
-        
+
         if (!groups) {
             return;
         }
-        
+
         displayGroupsPreview(groups);
-        
+
     } catch (error) {
         console.error('Error previewing groups:', error);
         alert('Error previewing groups: ' + error.message);
@@ -318,9 +318,9 @@ function previewGroups() {
 function createGroups() {
     const groups = generateGroupsForDate({ autoSave: true });
     if (!groups) return;
-    
+
     alert('Groups created successfully!');
-    
+
     // Switch to groups view
     showSection('groups');
 }
@@ -328,21 +328,21 @@ function createGroups() {
 function generateGroupsForDate(customOptions = {}) {
     const { autoSave = false, ...overrideOptions } = customOptions;
     const selectedDate = document.getElementById('grouping-date').value;
-    
+
     if (!selectedDate) {
         alert('Please select a date');
         return null;
     }
-    
-    const reservationsForDate = currentReservations.filter(r => 
+
+    const reservationsForDate = currentReservations.filter(r =>
         r.eventDate === selectedDate && r.personalityResults
     );
-    
+
     if (reservationsForDate.length === 0) {
         alert('No reservations with personality tests for this date');
         return null;
     }
-    
+
     const options = {
         minGroupSize: parseInt(document.getElementById('min-group-size').value),
         maxGroupSize: parseInt(document.getElementById('max-group-size').value),
@@ -350,21 +350,21 @@ function generateGroupsForDate(customOptions = {}) {
         eventDate: selectedDate,
         ...overrideOptions
     };
-    
+
     // Check if grouping algorithm is available
     if (typeof window.GroupingAlgorithm === 'undefined' || typeof window.GroupingAlgorithm.createDiningGroups !== 'function') {
         console.error('GroupingAlgorithm not found or invalid');
         alert('Grouping algorithm not loaded. Please refresh the page and try again.');
         return null;
     }
-    
+
     try {
         const groups = window.GroupingAlgorithm.createDiningGroups(reservationsForDate, options);
-        
+
         if (autoSave) {
             autoSaveGeneratedGroups(selectedDate, groups);
         }
-        
+
         return groups;
     } catch (error) {
         console.error('Grouping algorithm error:', error);
@@ -375,7 +375,7 @@ function generateGroupsForDate(customOptions = {}) {
 
 function displayGroupsPreview(groups) {
     const container = document.getElementById('grouping-preview');
-    
+
     const html = `
         <h4>Group Preview (${groups.length} groups):</h4>
         ${groups.map(group => `
@@ -398,7 +398,7 @@ function displayGroupsPreview(groups) {
             </div>
         `).join('')}
     `;
-    
+
     container.innerHTML = html;
 }
 
@@ -434,7 +434,7 @@ function autoSaveGeneratedGroups(eventDate, groups) {
     if (!groups || groups.length === 0) {
         return;
     }
-    
+
     saveGroups(groups, eventDate).catch(error => {
         console.error('Auto-save groups failed:', error);
     });
@@ -445,27 +445,27 @@ async function saveGroups(groups, eventDateOverride) {
         console.warn('No groups provided to save.');
         return;
     }
-    
+
     const eventDate = eventDateOverride || document.getElementById('grouping-date')?.value;
-    
+
     if (!eventDate) {
         console.warn('Cannot save groups without an event date.');
         return;
     }
-    
+
     const enrichedGroups = groups.map(group => ({
         ...group,
         eventDate: group.eventDate || eventDate
     }));
-    
+
     saveGroupsToLocalStorage(enrichedGroups, eventDate);
-    
+
     // Replace existing groups for this date in memory to keep state in sync
     currentGroups = [
         ...currentGroups.filter(group => group.eventDate !== eventDate),
         ...enrichedGroups
     ];
-    
+
     try {
         await saveGroupsToFirestore(eventDate, enrichedGroups);
     } catch (error) {
@@ -485,11 +485,11 @@ function saveGroupsToLocalStorage(groups, eventDate) {
 function fetchGroupsFromLocalStorage(eventDate) {
     const key = `groups_${eventDate}`;
     const storedGroups = localStorage.getItem(key);
-    
+
     if (!storedGroups) {
         return [];
     }
-    
+
     try {
         return JSON.parse(storedGroups);
     } catch (error) {
@@ -502,13 +502,13 @@ async function saveGroupsToFirestore(eventDate, groups) {
     if (typeof window.db === 'undefined' || !window.collection || !window.addDoc) {
         return;
     }
-    
+
     const payload = {
         date: eventDate,
         groups,
         createdAt: new Date().toISOString()
     };
-    
+
     try {
         if (window.query && window.where && window.getDocs && window.doc && window.updateDoc) {
             const collectionRef = window.collection(window.db, GROUPED_EVENTS_COLLECTION);
@@ -517,7 +517,7 @@ async function saveGroupsToFirestore(eventDate, groups) {
                 window.where('date', '==', eventDate)
             );
             const snapshot = await window.getDocs(queryByDate);
-            
+
             if (!snapshot.empty) {
                 const sortedDocs = snapshot.docs.sort((a, b) => {
                     const aDate = new Date(a.data().createdAt || 0);
@@ -527,7 +527,7 @@ async function saveGroupsToFirestore(eventDate, groups) {
                 const existingDoc = sortedDocs[0];
                 const existingData = existingDoc.data();
                 const docRef = window.doc(window.db, GROUPED_EVENTS_COLLECTION, existingDoc.id);
-                
+
                 await window.updateDoc(docRef, {
                     date: eventDate,
                     groups,
@@ -537,7 +537,7 @@ async function saveGroupsToFirestore(eventDate, groups) {
                 return;
             }
         }
-        
+
         await window.addDoc(window.collection(window.db, GROUPED_EVENTS_COLLECTION), payload);
     } catch (error) {
         console.error('Error saving grouped event to Firestore:', error);
@@ -549,7 +549,7 @@ async function fetchGroupsFromFirestore(eventDate) {
     if (typeof window.db === 'undefined' || !window.collection || !window.getDocs || !window.where) {
         return null;
     }
-    
+
     try {
         const collectionRef = window.collection(window.db, GROUPED_EVENTS_COLLECTION);
         const queryByDate = window.query(
@@ -557,15 +557,15 @@ async function fetchGroupsFromFirestore(eventDate) {
             window.where('date', '==', eventDate)
         );
         const snapshot = await window.getDocs(queryByDate);
-        
+
         if (snapshot.empty) {
             return null;
         }
-        
+
         const documents = snapshot.docs
             .map(doc => ({ id: doc.id, ...doc.data() }))
             .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-        
+
         return documents[0].groups || [];
     } catch (error) {
         console.error('Error fetching groups from Firestore:', error);
@@ -578,18 +578,18 @@ async function fetchGroupsForDate(eventDate) {
     if (remoteGroups && remoteGroups.length > 0) {
         return remoteGroups;
     }
-    
+
     return fetchGroupsFromLocalStorage(eventDate);
 }
 
 function displayGroups(groups) {
     const container = document.getElementById('groups-container');
-    
+
     if (groups.length === 0) {
         container.innerHTML = '<div class="no-data">No groups found</div>';
         return;
     }
-    
+
     const html = groups.map(group => `
         <div class="group-container">
             <div class="group-header">
@@ -609,7 +609,7 @@ function displayGroups(groups) {
             </div>
         </div>
     `).join('');
-    
+
     container.innerHTML = html;
 }
 
@@ -619,9 +619,9 @@ function filterGroups() {
         displayGroups(currentGroups);
         return;
     }
-    
+
     const filtered = currentGroups.filter(g => g.eventDate === filterDate);
-    
+
     displayGroups(filtered);
 }
 
@@ -647,7 +647,7 @@ function saveGroupsWithDate(groups, eventDate) {
 // Utility Functions
 function convertToCSV(data, fields) {
     const header = fields.join(',');
-    const rows = data.map(item => 
+    const rows = data.map(item =>
         fields.map(field => {
             let value = item[field] || '';
             if (typeof value === 'string' && value.includes(',')) {
@@ -656,7 +656,7 @@ function convertToCSV(data, fields) {
             return value;
         }).join(',')
     );
-    
+
     return [header, ...rows].join('\n');
 }
 
@@ -674,26 +674,26 @@ function downloadCSV(csv, filename) {
 async function loadGroupsForNotification() {
     const selectedDate = document.getElementById('notification-date').value;
     const previewContainer = document.getElementById('notification-preview');
-    
+
     if (!selectedDate) {
         previewContainer.innerHTML = '<p>Select an event date to see groups that can receive table assignment emails.</p>';
         setNotificationButtonsDisabled(true);
         currentGroups = [];
         return;
     }
-    
+
     console.log('Searching for groups on date:', selectedDate);
     previewContainer.innerHTML = '<div class="loading">Searching for groups...</div>';
     setNotificationButtonsDisabled(true);
-    
+
     const groups = await fetchGroupsForDate(selectedDate);
-    
+
     if (!groups || groups.length === 0) {
         previewContainer.innerHTML = '<div class="no-data">No groups found for this date. Generate groups first in the Create Groups tab.</div>';
         currentGroups = [];
         return;
     }
-    
+
     currentGroups = groups;
     renderNotificationPreview(groups, selectedDate);
     setNotificationButtonsDisabled(false);
@@ -702,7 +702,7 @@ async function loadGroupsForNotification() {
 function renderNotificationPreview(groups, eventDate) {
     const previewContainer = document.getElementById('notification-preview');
     const totalGuests = groups.reduce((sum, group) => sum + (group.members?.length || 0), 0);
-    
+
     const html = `
         <h4>${groups.length} groups ready for ${eventDate}</h4>
         <p>${totalGuests} guests will receive table assignments.</p>
@@ -726,18 +726,18 @@ function renderNotificationPreview(groups, eventDate) {
             </div>
         `).join('')}
     `;
-    
+
     previewContainer.innerHTML = html;
 }
 
 function setNotificationButtonsDisabled(disabled) {
     const sendButton = document.getElementById('send-notifications-btn');
     const previewButton = document.getElementById('preview-notifications-btn');
-    
+
     if (sendButton) {
         sendButton.disabled = disabled;
     }
-    
+
     if (previewButton) {
         previewButton.disabled = disabled;
     }
@@ -746,7 +746,7 @@ function setNotificationButtonsDisabled(disabled) {
 async function sendTableAssignments() {
     // 1. CONFIGURATION - Trim to remove any hidden whitespace
     const serviceID = "service_xmmwg4f".trim();
-    const templateID = "template_weyao6t".trim(); 
+    const templateID = "template_weyao6t".trim();
     const publicKey = "bBneJjbjP_6-Qzbpx".trim();
 
     // Verify configuration
@@ -758,16 +758,16 @@ async function sendTableAssignments() {
     });
 
     // 1. Init - Ensure EmailJS is loaded and initialized
-    if (typeof emailjs === 'undefined') { 
-        alert('EmailJS not loaded. Please refresh the page.'); 
-        return; 
+    if (typeof emailjs === 'undefined') {
+        alert('EmailJS not loaded. Please refresh the page.');
+        return;
     }
-    
+
     // Initialize EmailJS with public key (will override HTML head init if needed)
     try {
         emailjs.init(publicKey);
         console.log('✅ EmailJS initialized with public key:', publicKey);
-        
+
         // Verify initialization worked
         if (!emailjs || typeof emailjs.send !== 'function') {
             throw new Error('EmailJS not properly initialized');
@@ -780,11 +780,11 @@ async function sendTableAssignments() {
 
     // 2. Validation
     const dateStr = document.getElementById('notification-date').value || 'Upcoming Event';
-    if (!currentGroups || currentGroups.length === 0) { 
-        alert('No groups loaded. Please go to "Create Groups" first.'); 
-        return; 
+    if (!currentGroups || currentGroups.length === 0) {
+        alert('No groups loaded. Please go to "Create Groups" first.');
+        return;
     }
-    
+
     const totalPeople = currentGroups.reduce((acc, g) => acc + g.members.length, 0);
     if (!confirm(`Ready to send emails to ${totalPeople} real users?`)) return;
 
@@ -805,6 +805,8 @@ async function sendTableAssignments() {
                 email: member.email,
                 table_number: group.tableAssignment,
                 event_date: group.eventDate || dateStr,
+                time_slot: member.timeSlot || '7:00 PM',
+                time: member.timeSlot || '7:00 PM',
                 group_size: group.size,
                 companions: group.members
                     .filter(m => m.email !== member.email)
@@ -824,8 +826,8 @@ async function sendTableAssignments() {
     for (const task of emailTasks) {
         const p = (async () => {
             try {
-                 // Verify values before sending
-                 console.log('🔍 Pre-send verification:', {
+                // Verify values before sending
+                console.log('🔍 Pre-send verification:', {
                     serviceID: serviceID,
                     templateID: templateID,
                     recipient: task.member.email
@@ -842,8 +844,8 @@ async function sendTableAssignments() {
                     recipient: task.member.email,
                     error_object: e
                 });
-                
-                 if (e?.text?.includes('service ID')) {
+
+                if (e?.text?.includes('service ID')) {
                     console.error('⚠️ SERVICE ID ISSUE DETECTED');
                     console.error('Expected serviceID:', serviceID);
                 }
@@ -873,7 +875,7 @@ function exportGroupsCSV() {
         alert('No groups to export');
         return;
     }
-    
+
     const flatData = [];
     currentGroups.forEach(group => {
         group.members.forEach(member => {
@@ -888,7 +890,7 @@ function exportGroupsCSV() {
             });
         });
     });
-    
+
     const csv = convertToCSV(flatData, Object.keys(flatData[0]));
     downloadCSV(csv, 'groups.csv');
 }
@@ -898,20 +900,20 @@ function exportEmailList() {
         alert('No groups to export');
         return;
     }
-    
+
     const emails = [];
     currentGroups.forEach(group => {
         group.members.forEach(member => {
             emails.push({ email: member.email, name: `${member.firstName} ${member.lastName}` });
         });
     });
-    
+
     const csv = convertToCSV(emails, ['email', 'name']);
     downloadCSV(csv, 'email-list.csv');
 }
 
 // Debug function for testing grouping
-window.testGrouping = function() {
+window.testGrouping = function () {
     const testDate = document.getElementById('grouping-date').value;
     if (testDate) {
         loadReservationsForGrouping();
