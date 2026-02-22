@@ -257,8 +257,27 @@ async function saveReservation(reservationData) {
     
     // LocalStorage fallback (for offline or demo mode)
     const reservationId = 'res_' + Date.now();
+    const storageKey = 'reservation_' + reservationId;
     try {
-        localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
+        localStorage.setItem(storageKey, JSON.stringify(reservationData));
+
+        // Update reservation index for better dashboard performance
+        try {
+            const indexKey = '__index_reservations__';
+            const indexStr = localStorage.getItem(indexKey);
+            let index = [];
+            if (indexStr) {
+                index = JSON.parse(indexStr);
+            }
+            if (!index.includes(storageKey)) {
+                index.push(storageKey);
+                localStorage.setItem(indexKey, JSON.stringify(index));
+            }
+        } catch (indexError) {
+            console.warn('Failed to update reservation index:', indexError);
+            // Non-blocking, the dashboard will rebuild the index if needed
+        }
+
         return reservationId;
     } catch (e) {
         throw new Error('Could not save reservation locally. Please check your browser settings.');

@@ -173,20 +173,56 @@ async function getAllReservations() {
 
 function getLocalStorageReservations() {
     const reservations = [];
-    
+    const indexKey = '__index_reservations__';
+    const indexStr = localStorage.getItem(indexKey);
+    let needsIndexUpdate = false;
+
+    if (indexStr) {
+        try {
+            const keys = JSON.parse(indexStr);
+            const validKeys = [];
+            for (const key of keys) {
+                const item = localStorage.getItem(key);
+                if (item) {
+                    try {
+                        const data = JSON.parse(item);
+                        reservations.push({ id: key.replace('reservation_', ''), ...data });
+                        validKeys.push(key);
+                    } catch (e) {
+                        needsIndexUpdate = true;
+                    }
+                } else {
+                    needsIndexUpdate = true;
+                }
+            }
+            if (needsIndexUpdate) {
+                localStorage.setItem(indexKey, JSON.stringify(validKeys));
+            }
+            return reservations;
+        } catch (e) {
+            console.warn('Error parsing reservation index, rebuilding...');
+        }
+    }
+
+    // Fallback: Full scan if index is missing or corrupted
+    const allReservations = [];
+    const reservationKeys = [];
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key.startsWith('reservation_')) {
+        if (key && key.startsWith('reservation_')) {
             try {
                 const data = JSON.parse(localStorage.getItem(key));
-                reservations.push({ id: key.replace('reservation_', ''), ...data });
+                allReservations.push({ id: key.replace('reservation_', ''), ...data });
+                reservationKeys.push(key);
             } catch (error) {
                 console.error('Error parsing reservation:', key, error);
             }
         }
     }
     
-    return reservations;
+    // Save the newly built index
+    localStorage.setItem(indexKey, JSON.stringify(reservationKeys));
+    return allReservations;
 }
 
 function displayReservations(reservations) {
@@ -416,17 +452,52 @@ async function loadGroups() {
 async function getAllGroups() {
     // For demo, we'll use localStorage
     const groups = [];
+    const indexKey = '__index_groups__';
+    const indexStr = localStorage.getItem(indexKey);
+    let needsIndexUpdate = false;
+
+    if (indexStr) {
+        try {
+            const keys = JSON.parse(indexStr);
+            const validKeys = [];
+            for (const key of keys) {
+                const item = localStorage.getItem(key);
+                if (item) {
+                    try {
+                        const data = JSON.parse(item);
+                        groups.push(...data);
+                        validKeys.push(key);
+                    } catch (e) {
+                        needsIndexUpdate = true;
+                    }
+                } else {
+                    needsIndexUpdate = true;
+                }
+            }
+            if (needsIndexUpdate) {
+                localStorage.setItem(indexKey, JSON.stringify(validKeys));
+            }
+            return groups;
+        } catch (e) {
+            console.warn('Error parsing groups index, rebuilding...');
+        }
+    }
+
+    // Fallback: Full scan
+    const groupKeys = [];
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key.startsWith('groups_')) {
+        if (key && key.startsWith('groups_')) {
             try {
                 const data = JSON.parse(localStorage.getItem(key));
                 groups.push(...data);
+                groupKeys.push(key);
             } catch (error) {
                 console.error('Error parsing groups:', key, error);
             }
         }
     }
+    localStorage.setItem(indexKey, JSON.stringify(groupKeys));
     return groups;
 }
 
@@ -477,6 +548,22 @@ function saveGroupsToLocalStorage(groups, eventDate) {
     const key = `groups_${eventDate}`;
     try {
         localStorage.setItem(key, JSON.stringify(groups));
+
+        // Update groups index for performance
+        try {
+            const indexKey = '__index_groups__';
+            const indexStr = localStorage.getItem(indexKey);
+            let index = [];
+            if (indexStr) {
+                index = JSON.parse(indexStr);
+            }
+            if (!index.includes(key)) {
+                index.push(key);
+                localStorage.setItem(indexKey, JSON.stringify(index));
+            }
+        } catch (e) {
+            console.warn('Failed to update groups index:', e);
+        }
     } catch (error) {
         console.error('Error saving groups to localStorage:', error);
     }

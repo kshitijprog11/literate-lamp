@@ -222,12 +222,26 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Try Firebase first (for real data sharing), then localStorage fallback
             if (window.FAST_TESTING_MODE || typeof window.db === 'undefined' || typeof window.updateDoc === 'undefined') {
-                const reservationData = JSON.parse(localStorage.getItem('reservation_' + reservationId) || '{}');
+                const storageKey = 'reservation_' + reservationId;
+                const reservationData = JSON.parse(localStorage.getItem(storageKey) || '{}');
                 reservationData.personalityResults = results;
                 reservationData.personalityTestStatus = 'Completed';
                 reservationData.status = 'Confirmed';
                 reservationData.updatedAt = new Date().toISOString();
-                localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
+                localStorage.setItem(storageKey, JSON.stringify(reservationData));
+
+                // Maintain index
+                try {
+                    const indexKey = '__index_reservations__';
+                    const indexStr = localStorage.getItem(indexKey);
+                    let index = [];
+                    if (indexStr) index = JSON.parse(indexStr);
+                    if (!index.includes(storageKey)) {
+                        index.push(storageKey);
+                        localStorage.setItem(indexKey, JSON.stringify(index));
+                    }
+                } catch (e) { console.warn('Index update failed', e); }
+
                 return;
             }
             
@@ -248,12 +262,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 
             } catch (firebaseError) {
                 console.warn('Firebase save failed, using localStorage fallback:', firebaseError.message);
-                const reservationData = JSON.parse(localStorage.getItem('reservation_' + reservationId) || '{}');
+                const storageKey = 'reservation_' + reservationId;
+                const reservationData = JSON.parse(localStorage.getItem(storageKey) || '{}');
                 reservationData.personalityResults = results;
                 reservationData.personalityTestStatus = 'Completed';
                 reservationData.status = 'Confirmed';
                 reservationData.updatedAt = new Date().toISOString();
-                localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
+                localStorage.setItem(storageKey, JSON.stringify(reservationData));
+
+                // Maintain index
+                try {
+                    const indexKey = '__index_reservations__';
+                    const indexStr = localStorage.getItem(indexKey);
+                    let index = [];
+                    if (indexStr) index = JSON.parse(indexStr);
+                    if (!index.includes(storageKey)) {
+                        index.push(storageKey);
+                        localStorage.setItem(indexKey, JSON.stringify(index));
+                    }
+                } catch (e) { console.warn('Index update failed', e); }
             }
             
         } catch (error) {
