@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Mindful Dining</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍽️</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍽️</text></svg>">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/themes.css">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;600&display=swap"
+        rel="stylesheet">
     <script src="js/theme-switcher.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">
-       (function(){
-          emailjs.init("bBneJjbjP_6-Qzbpx");
-       })();
+        (function () {
+            emailjs.init("bBneJjbjP_6-Qzbpx");
+        })();
     </script>
     <style>
         .admin-container {
@@ -21,7 +25,7 @@
             margin: 0 auto;
             padding: var(--spacing-xl);
         }
-        
+
         .admin-header {
             background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
             color: white;
@@ -31,18 +35,18 @@
             text-align: center;
             box-shadow: var(--shadow-lg);
         }
-        
+
         .admin-header h1 {
             color: white;
         }
-        
+
         .admin-nav {
             display: flex;
             gap: var(--spacing-md);
             margin-bottom: var(--spacing-2xl);
             flex-wrap: wrap;
         }
-        
+
         .admin-nav button {
             padding: var(--spacing-md) var(--spacing-xl);
             border: 2px solid var(--color-neutral-200);
@@ -55,7 +59,7 @@
             font-family: var(--font-body);
             min-height: 48px;
         }
-        
+
         .admin-nav button:hover,
         .admin-nav button.active {
             background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
@@ -64,7 +68,7 @@
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
         }
-        
+
         .admin-section {
             background: white;
             border-radius: var(--radius-xl);
@@ -73,23 +77,23 @@
             box-shadow: var(--shadow-lg);
             border: 1px solid var(--color-neutral-200);
         }
-        
+
         .admin-section.hidden {
             display: none;
         }
-        
+
         .admin-section h2 {
             color: var(--color-primary);
             margin-bottom: var(--spacing-xl);
         }
-        
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: var(--spacing-lg);
             margin-bottom: var(--spacing-2xl);
         }
-        
+
         .stat-card {
             background: linear-gradient(135deg, var(--color-neutral-50), white);
             padding: var(--spacing-xl);
@@ -99,19 +103,19 @@
             box-shadow: var(--shadow-sm);
             transition: all var(--transition-base);
         }
-        
+
         .stat-card:hover {
             transform: translateY(-4px);
             box-shadow: var(--shadow-md);
         }
-        
+
         .stat-number {
             font-size: var(--font-size-4xl);
             font-weight: 700;
             color: var(--color-primary);
             font-family: var(--font-display);
         }
-        
+
         .stat-label {
             color: var(--color-neutral-600);
             margin-top: var(--spacing-sm);
@@ -119,20 +123,20 @@
             letter-spacing: var(--letter-spacing-wide);
             text-transform: uppercase;
         }
-        
+
         .reservations-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: var(--spacing-lg);
         }
-        
+
         .reservations-table th,
         .reservations-table td {
             padding: var(--spacing-md);
             text-align: left;
             border-bottom: 1px solid var(--color-neutral-200);
         }
-        
+
         .reservations-table th {
             background-color: var(--color-neutral-100);
             font-weight: 600;
@@ -141,7 +145,7 @@
             text-transform: uppercase;
             font-size: var(--font-size-sm);
         }
-        
+
         .group-container {
             border: 2px solid var(--color-neutral-200);
             border-radius: var(--radius-lg);
@@ -150,11 +154,11 @@
             box-shadow: var(--shadow-sm);
             transition: all var(--transition-base);
         }
-        
+
         .group-container:hover {
             box-shadow: var(--shadow-md);
         }
-        
+
         .group-header {
             background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
             color: white;
@@ -163,12 +167,12 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .group-members {
             padding: var(--spacing-lg);
             background: white;
         }
-        
+
         .member-item {
             display: flex;
             justify-content: space-between;
@@ -177,19 +181,19 @@
             align-items: center;
             transition: background-color var(--transition-base);
         }
-        
+
         .member-item:hover {
             background-color: var(--color-neutral-50);
         }
-        
+
         .member-item:last-child {
             border-bottom: none;
         }
-        
+
         .member-info {
             flex-grow: 1;
         }
-        
+
         .member-score {
             background-color: var(--color-neutral-100);
             color: var(--color-primary);
@@ -198,7 +202,7 @@
             font-size: var(--font-size-sm);
             font-weight: 600;
         }
-        
+
         .controls {
             display: flex;
             gap: var(--spacing-lg);
@@ -206,19 +210,19 @@
             flex-wrap: wrap;
             align-items: center;
         }
-        
+
         .date-filter {
             display: flex;
             gap: var(--spacing-md);
             align-items: center;
         }
-        
+
         .date-filter label {
             font-weight: 600;
             color: var(--color-neutral-700);
             font-size: var(--font-size-sm);
         }
-        
+
         .date-filter input {
             padding: var(--spacing-md);
             border: 2px solid var(--color-neutral-200);
@@ -227,26 +231,26 @@
             transition: border-color var(--transition-base);
             min-height: 44px;
         }
-        
+
         .date-filter input:focus {
             outline: none;
             border-color: var(--color-primary);
             box-shadow: 0 0 0 3px rgba(160, 115, 95, 0.1);
         }
-        
+
         .export-section {
             margin-top: var(--spacing-2xl);
             padding-top: var(--spacing-xl);
             border-top: 2px solid var(--color-neutral-100);
         }
-        
+
         .action-buttons {
             display: flex;
             gap: var(--spacing-md);
             margin-top: var(--spacing-xl);
             flex-wrap: wrap;
         }
-        
+
         .btn-primary {
             background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
             color: white;
@@ -260,12 +264,12 @@
             min-height: 48px;
             font-family: var(--font-body);
         }
-        
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
         }
-        
+
         .btn-secondary {
             background-color: var(--color-neutral-100);
             color: var(--color-neutral-700);
@@ -278,42 +282,42 @@
             min-height: 48px;
             font-family: var(--font-body);
         }
-        
+
         .btn-secondary:hover {
             background-color: var(--color-neutral-200);
             transform: translateY(-2px);
         }
-        
+
         .loading {
             text-align: center;
             padding: var(--spacing-3xl);
             color: var(--color-neutral-600);
         }
-        
+
         .no-data {
             text-align: center;
             padding: var(--spacing-3xl);
             color: var(--color-neutral-400);
             font-style: italic;
         }
-        
+
         @media (max-width: 768px) {
             .admin-container {
                 padding: var(--spacing-lg);
             }
-            
+
             .admin-nav {
                 flex-direction: column;
             }
-            
+
             .admin-nav button {
                 width: 100%;
             }
-            
+
             .action-buttons {
                 flex-direction: column;
             }
-            
+
             .btn-primary,
             .btn-secondary {
                 width: 100%;
@@ -321,13 +325,14 @@
         }
     </style>
 </head>
+
 <body>
     <div class="admin-container">
         <div class="admin-header">
             <h1>Mindful Dining Admin Dashboard</h1>
             <p>Manage reservations, create groups, and track events</p>
         </div>
-        
+
         <div class="admin-nav">
             <button onclick="showSection('overview')" class="active" id="nav-overview">Overview</button>
             <button onclick="showSection('reservations')" id="nav-reservations">Reservations</button>
@@ -335,7 +340,7 @@
             <button onclick="showSection('groups')" id="nav-groups">View Groups</button>
             <button onclick="showSection('notifications')" id="nav-notifications">Send Notifications</button>
         </div>
-        
+
         <!-- Overview Section -->
         <div id="overview-section" class="admin-section">
             <h2>Dashboard Overview</h2>
@@ -357,17 +362,17 @@
                     <div class="stat-label">Upcoming Events</div>
                 </div>
             </div>
-            
+
             <h3>Recent Activity</h3>
             <div id="recent-activity">
                 <div class="loading">Loading recent activity...</div>
             </div>
         </div>
-        
+
         <!-- Reservations Section -->
         <div id="reservations-section" class="admin-section hidden">
             <h2>Manage Reservations</h2>
-            
+
             <div class="controls">
                 <div class="date-filter">
                     <label>Filter by date:</label>
@@ -377,49 +382,51 @@
                 <button onclick="refreshReservations()" class="btn-primary">Refresh</button>
                 <button onclick="exportReservations()" class="btn-secondary">Export CSV</button>
             </div>
-            
+
             <div id="reservations-container">
                 <div class="loading">Loading reservations...</div>
             </div>
         </div>
-        
+
         <!-- Grouping Section -->
         <div id="grouping-section" class="admin-section hidden">
             <h2>Create Dining Groups</h2>
-            
+
             <div class="controls">
                 <div class="date-filter">
                     <label>Select event date:</label>
                     <input type="date" id="grouping-date" onchange="loadReservationsForGrouping()">
                 </div>
                 <label>
-                    Min group size: 
+                    Min group size:
                     <input type="number" id="min-group-size" value="2" min="2" max="12">
                 </label>
                 <label>
-                    Max group size: 
+                    Max group size:
                     <input type="number" id="max-group-size" value="8" min="2" max="12">
                 </label>
                 <label>
-                    Score threshold: 
+                    Score threshold:
                     <input type="number" id="score-threshold" value="15" min="5" max="50">
                 </label>
             </div>
-            
+
             <div id="grouping-preview">
                 <p>Select an event date to see available reservations for grouping.</p>
             </div>
-            
+
             <div class="action-buttons">
-                <button onclick="createGroups()" class="btn-primary" id="create-groups-btn" disabled>Create Groups</button>
-                <button onclick="previewGroups()" class="btn-secondary" id="preview-groups-btn" disabled>Preview Groups</button>
+                <button onclick="createGroups()" class="btn-primary" id="create-groups-btn" disabled>Create
+                    Groups</button>
+                <button onclick="previewGroups()" class="btn-secondary" id="preview-groups-btn" disabled>Preview
+                    Groups</button>
             </div>
         </div>
-        
+
         <!-- Groups Section -->
         <div id="groups-section" class="admin-section hidden">
             <h2>View Created Groups</h2>
-            
+
             <div class="controls">
                 <div class="date-filter">
                     <label>Filter by event date:</label>
@@ -428,32 +435,34 @@
                 </div>
                 <button onclick="refreshGroups()" class="btn-primary">Refresh</button>
             </div>
-            
+
             <div id="groups-container">
                 <div class="loading">Loading groups...</div>
             </div>
         </div>
-        
+
         <!-- Notifications Section -->
         <div id="notifications-section" class="admin-section hidden">
             <h2>Send Table Assignment Notifications</h2>
-            
+
             <div class="controls">
                 <div class="date-filter">
                     <label>Select event date:</label>
                     <input type="date" id="notification-date" onchange="loadGroupsForNotification()">
                 </div>
             </div>
-            
+
             <div id="notification-preview">
                 <p>Select an event date to see groups that can receive table assignment emails.</p>
             </div>
-            
+
             <div class="action-buttons">
-                <button onclick="sendTableAssignments()" class="btn-primary" id="send-notifications-btn" disabled>Send All Table Assignments</button>
-                <button onclick="previewNotifications()" class="btn-secondary" id="preview-notifications-btn" disabled>Preview Emails</button>
+                <button onclick="sendTableAssignments()" class="btn-primary" id="send-notifications-btn" disabled>Send
+                    All Table Assignments</button>
+                <button onclick="previewNotifications()" class="btn-secondary" id="preview-notifications-btn"
+                    disabled>Preview Emails</button>
             </div>
-            
+
             <div class="export-section">
                 <h3>Export Options</h3>
                 <button onclick="exportGroupsCSV()" class="btn-secondary">Export Groups as CSV</button>
@@ -461,12 +470,12 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Firebase SDK with your real config -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
         import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
-        
+
         // Your real Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDCZ86Fvr0p0xSF2izG5Kk4UR27qJIQ_OY",
@@ -477,11 +486,11 @@
             appId: "1:756250419814:web:abdd3df98c9884114003a7",
             measurementId: "G-V97Y6YE2X2"
         };
-        
+
         try {
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
-            
+
             // Make Firebase available globally
             window.db = db;
             window.getDocs = getDocs;
@@ -492,22 +501,23 @@
             window.query = query;
             window.where = where;
             window.orderBy = orderBy;
-            
+
             console.log('Admin Dashboard connected to Firebase');
-            
+
             // Initialize dashboard after Firebase is ready
             if (window.initializeDashboard) {
                 window.initializeDashboard();
             }
-            
+
         } catch (error) {
             console.error('❌ Admin Dashboard Firebase connection failed:', error);
-            document.getElementById('recent-activity').innerHTML = 
+            document.getElementById('recent-activity').innerHTML =
                 '<div class="no-data">Firebase connection failed. Check console for details.</div>';
         }
     </script>
-    
+
     <script src="js/grouping-algorithm.js"></script>
-    <script type="module" src="js/admin-dashboard.js?v=service_fix_7x8jq3n"></script>
+    <script type="module" src="js/admin-dashboard.js?v=cache_bust_4"></script>
 </body>
+
 </html>
