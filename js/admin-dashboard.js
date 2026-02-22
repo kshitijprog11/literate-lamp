@@ -903,3 +903,21 @@ window.testGrouping = function () {
         loadReservationsForGrouping();
     }
 };
+
+// Make functions globally available for HTML inline handlers because this file is now a JS module
+window.showSection = showSection;
+window.filterReservations = filterReservations;
+window.clearDateFilter = clearDateFilter;
+window.refreshReservations = refreshReservations;
+window.exportReservations = exportReservations;
+window.loadReservationsForGrouping = loadReservationsForGrouping;
+window.createGroups = createGroups;
+window.previewGroups = previewGroups;
+window.filterGroups = filterGroups;
+window.clearGroupsFilter = clearGroupsFilter;
+window.refreshGroups = refreshGroups;
+window.loadGroupsForNotification = loadGroupsForNotification;
+window.sendTableAssignments = sendTableAssignments;
+window.previewNotifications = previewNotifications;
+window.exportGroupsCSV = exportGroupsCSV;
+window.exportEmailList = exportEmailList;
