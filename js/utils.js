@@ -9,7 +9,7 @@ export function convertToCSV(data, fields) {
         fields.map(field => {
             let value = item[field] || '';
             if (typeof value === 'string' && value.includes(',')) {
-                value = """";
+                value = `"${value}"`;
             }
             return value;
         }).join(',')
