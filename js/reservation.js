@@ -552,7 +552,8 @@ async function sendConfirmationEmail(data) {
             event_date: data.eventDate,
             time_slot: data.timeSlot,
             party_size: 1, // Defaulting to 1 for individual reservations
-            dietary_restrictions: data.dietaryRestrictions || 'None'
+            dietary_restrictions: data.dietaryRestrictions || 'None',
+            personality_type: data.personalityProfile || 'Pending'
         };
 
         await emailjs.send(serviceID, templateID, templateParams);
