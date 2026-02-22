@@ -1,4 +1,6 @@
 // Admin Dashboard JavaScript
+import { convertToCSV, downloadCSV } from './utils.js';
+
 let currentReservations = [];
 let currentGroups = [];
 const GROUPED_EVENTS_COLLECTION = 'grouped_events';
@@ -644,31 +646,7 @@ function saveGroupsWithDate(groups, eventDate) {
 // But I need to replace the original saveGroups.
 // Rewriting saveGroups in the file content above.
 
-// Utility Functions
-function convertToCSV(data, fields) {
-    const header = fields.join(',');
-    const rows = data.map(item =>
-        fields.map(field => {
-            let value = item[field] || '';
-            if (typeof value === 'string' && value.includes(',')) {
-                value = `"${value}"`;
-            }
-            return value;
-        }).join(',')
-    );
-
-    return [header, ...rows].join('\n');
-}
-
-function downloadCSV(csv, filename) {
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    window.URL.revokeObjectURL(url);
-}
+// Utility Functions imported from utils.js
 
 // Notification functions (placeholder for SendGrid integration)
 async function loadGroupsForNotification() {

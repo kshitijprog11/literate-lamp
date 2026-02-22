@@ -307,6 +307,11 @@ const initPersonalityTest = function () {
                 reservationData.status = 'Confirmed';
                 reservationData.updatedAt = new Date().toISOString();
                 localStorage.setItem('reservation_' + reservationId, JSON.stringify(reservationData));
+
+                // Add soft UI notification that they are offline
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification("You are currently disconnected. Results saved to this device only.", "info");
+                }
             }
 
         } catch (error) {

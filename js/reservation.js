@@ -55,14 +55,17 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 isValid = validateForm(reservationData);
             } catch (validationError) {
-                alert('Error: ' + validationError.message);
+                showInlineError(validationError.message);
                 return;
             }
 
             if (!isValid) {
-                alert('Please fill in all required fields');
+                showInlineError('Please fill in all required fields');
                 return;
             }
+
+            // Clear any old inline errors
+            clearInlineError();
 
             pendingReservationData = {
                 ...reservationData,
@@ -214,6 +217,46 @@ function validateForm(data) {
     }
 
     return true;
+}
+
+/**
+ * Shows a gentle inline error above the submit button
+ */
+function showInlineError(message) {
+    let errorEl = document.getElementById('form-inline-error');
+    if (!errorEl) {
+        errorEl = document.createElement('div');
+        errorEl.id = 'form-inline-error';
+        errorEl.style.color = '#d32f2f';
+        errorEl.style.marginTop = '10px';
+        errorEl.style.fontWeight = '500';
+        errorEl.style.fontSize = '14px';
+        errorEl.style.textAlign = 'center';
+
+        const submitBtn = document.getElementById('submit-button');
+        if (submitBtn && submitBtn.parentNode) {
+            submitBtn.parentNode.insertBefore(errorEl, submitBtn);
+        }
+    }
+    errorEl.textContent = message;
+
+    // Highlight empty required fields
+    const requiredInputs = document.querySelectorAll('input[required], select[required]');
+    requiredInputs.forEach(input => {
+        if (input.value.trim() === '') {
+            input.style.borderColor = '#d32f2f';
+        }
+    });
+}
+
+/**
+ * Clears the inline error
+ */
+function clearInlineError() {
+    const errorEl = document.getElementById('form-inline-error');
+    if (errorEl) {
+        errorEl.textContent = '';
+    }
 }
 
 /**
