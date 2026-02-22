@@ -505,9 +505,14 @@
             console.log('Admin Dashboard connected to Firebase');
 
             // Initialize dashboard after Firebase is ready
-            if (window.initializeDashboard) {
-                window.initializeDashboard();
-            }
+            // Add a slight delay to ensure module scripts have parsed first
+            setTimeout(() => {
+                if (typeof window.initializeDashboard === 'function') {
+                    window.initializeDashboard();
+                } else {
+                    console.warn("initializeDashboard is not yet ready on window.");
+                }
+            }, 100);
 
         } catch (error) {
             console.error('❌ Admin Dashboard Firebase connection failed:', error);
@@ -517,7 +522,7 @@
     </script>
 
     <script src="js/grouping-algorithm.js"></script>
-    <script type="module" src="js/admin-dashboard.js?v=cache_bust_4"></script>
+    <script type="module" src="js/admin-dashboard.js?v=cache_bust_7"></script>
 </body>
 
 </html>
