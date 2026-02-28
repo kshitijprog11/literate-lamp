@@ -244,6 +244,14 @@ const initPersonalityTest = function () {
             <div class="personality-score">${result.score}</div>
             <div class="personality-type">${personality.type}</div>
             <div class="personality-description">${personality.description}</div>
+            
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 2rem 0;">
+                <h4 style="margin-bottom: 1rem; color: var(--primary-color);">Your Social Dining Signature</h4>
+                <div style="position: relative; width: 300px; height: 300px;">
+                    <canvas id="personalityRadarChart"></canvas>
+                </div>
+            </div>
+
             <div class="personality-traits">
                 <h4>Your Dining Style:</h4>
                 <ul>
@@ -254,6 +262,9 @@ const initPersonalityTest = function () {
                 <strong>Core Intent:</strong> ${result.dominantIntent.replace('_', ' ')} | <strong>Table Role:</strong> ${result.dominantRole}
             </div>
         `;
+
+        // Render the Radar Chart
+        renderRadarChart(result.totalStats);
 
         // Store results for later use
         sessionStorage.setItem('personalityResults', JSON.stringify({
@@ -266,6 +277,66 @@ const initPersonalityTest = function () {
         }));
 
         sessionStorage.removeItem('testStartTime');
+    }
+
+    function renderRadarChart(stats) {
+        const ctx = document.getElementById('personalityRadarChart').getContext('2d');
+
+        // Extract data for the chart
+        const data = [
+            stats.intents.networking,
+            stats.intents.casual,
+            stats.intents.deep_connection,
+            stats.roles.catalyst,
+            stats.roles.storyteller,
+            stats.roles.interviewer,
+            stats.roles.listener,
+            (stats.energyTotal / 10) // Normalize energy to be roughly 1-5 like the others
+        ];
+
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: [
+                    'Networking (Intent)',
+                    'Casual Fun (Intent)',
+                    'Deep Conn. (Intent)',
+                    'Catalyst (Role)',
+                    'Storyteller (Role)',
+                    'Interviewer (Role)',
+                    'Listener (Role)',
+                    'Social Energy'
+                ],
+                datasets: [{
+                    label: 'Your Social Signature',
+                    data: data,
+                    backgroundColor: 'rgba(52, 152, 219, 0.2)', // var(--primary-color) with opacity
+                    borderColor: 'rgba(52, 152, 219, 1)',
+                    pointBackgroundColor: 'rgba(52, 152, 219, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(52, 152, 219, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                        grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                        pointLabels: {
+                            font: { family: "'Open Sans', sans-serif", size: 11 },
+                            color: '#666'
+                        },
+                        ticks: { display: false, min: 0 } // Hide the number markers on the web
+                    }
+                },
+                plugins: {
+                    legend: { display: false } // Hide the legend since there's only one dataset
+                },
+                maintainAspectRatio: false
+            }
+        });
     }
 
     async function saveResults() {
