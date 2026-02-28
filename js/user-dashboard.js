@@ -134,9 +134,10 @@ function renderDashboard(reservation) {
     const profileContainer = document.getElementById('personality-profile-content');
     if (reservation.personalityResults) {
         const pr = reservation.personalityResults;
+        const profileData = pr.fullProfile || pr.score;
         const type = pr.personality?.type || 'The Balanced Diner';
-        const role = pr.fullProfile?.dominantRole || 'Unknown';
-        const intent = pr.fullProfile?.dominantIntent || 'Unknown';
+        const role = profileData?.dominantRole || 'Unknown';
+        const intent = profileData?.dominantIntent || 'Unknown';
 
         let profileHTML = `
             <div style="text-align: center; margin-bottom: 1.5rem;">
@@ -152,9 +153,9 @@ function renderDashboard(reservation) {
         profileContainer.innerHTML = profileHTML;
 
         // Draw Chart
-        if (pr.fullProfile && pr.fullProfile.totalStats) {
+        if (profileData && profileData.totalStats) {
             setTimeout(() => {
-                renderRadarChart(pr.fullProfile.totalStats);
+                renderRadarChart(profileData.totalStats);
             }, 100);
         }
 
