@@ -59,6 +59,9 @@ function showSection(sectionName) {
         case 'groups':
             loadGroups();
             break;
+        case 'floor-plan':
+            // Logic handled by the date picker inside the view
+            break;
     }
 }
 
@@ -925,3 +928,117 @@ window.sendTableAssignments = sendTableAssignments;
 window.previewNotifications = previewNotifications;
 window.exportGroupsCSV = exportGroupsCSV;
 window.exportEmailList = exportEmailList;
+
+// --- Floor Plan Logic ---
+let floorPlanGroups = [];
+
+async function loadFloorPlan() {
+    const eventDate = document.getElementById('floor-plan-date').value;
+    if (!eventDate) return;
+
+    floorPlanGroups = await fetchGroupsForDate(eventDate);
+
+    if (!floorPlanGroups || floorPlanGroups.length === 0) {
+        document.getElementById('unassigned-groups').innerHTML = '<p class="no-data">No groups found for this date.</p>';
+        return;
+    }
+
+    renderFloorPlanUI(eventDate);
+}
+
+function renderFloorPlanUI(eventDate) {
+    const unassignedContainer = document.getElementById('unassigned-groups');
+    unassignedContainer.innerHTML = '';
+
+    document.querySelectorAll('.table-dropzone').forEach(zone => {
+        zone.innerHTML = '';
+    });
+
+    floorPlanGroups.forEach((group, index) => {
+        const groupId = `group-${eventDate}-${index}`;
+        const groupEl = document.createElement('div');
+        groupEl.className = 'draggable-group';
+        groupEl.draggable = true;
+        groupEl.id = groupId;
+        groupEl.style.cssText = 'background: white; padding: 10px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid var(--color-primary); cursor: grab; box-shadow: 0 1px 3px rgba(0,0,0,0.1); font-size: 0.9em;';
+        groupEl.innerHTML = `<strong>${group.tableAssignment}</strong> (${group.size} ppl)<br><small>${group.intent ? group.intent.replace('_', ' ').toUpperCase() : 'MIXED'}</small>`;
+
+        groupEl.addEventListener('dragstart', handleDragStart);
+        groupEl.addEventListener('dragend', handleDragEnd);
+
+        if (group.physicalTableId) {
+            const dropzone = document.querySelector(`.table-dropzone[data-table-id="${group.physicalTableId}"]`);
+            if (dropzone) {
+                dropzone.appendChild(groupEl);
+                return;
+            }
+        }
+
+        unassignedContainer.appendChild(groupEl);
+    });
+
+    document.querySelectorAll('.dropzone').forEach(zone => {
+        zone.addEventListener('dragover', handleDragOver);
+        zone.addEventListener('dragleave', handleDragLeave);
+        zone.addEventListener('drop', handleDrop);
+    });
+}
+
+function handleDragStart(e) {
+    e.dataTransfer.setData('text/plain', e.target.id);
+    e.target.style.opacity = '0.5';
+}
+
+function handleDragEnd(e) {
+    e.target.style.opacity = '1';
+    document.querySelectorAll('.dropzone').forEach(zone => zone.style.background = '');
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.currentTarget.style.background = 'rgba(160, 115, 95, 0.1)';
+}
+
+function handleDragLeave(e) {
+    e.currentTarget.style.background = '';
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    e.currentTarget.style.background = '';
+    const id = e.dataTransfer.getData('text/plain');
+    const draggableElement = document.getElementById(id);
+
+    if (draggableElement) {
+        e.currentTarget.appendChild(draggableElement);
+    }
+}
+
+async function saveFloorPlan() {
+    const eventDate = document.getElementById('floor-plan-date').value;
+    if (!eventDate || !floorPlanGroups || floorPlanGroups.length === 0) return;
+
+    floorPlanGroups.forEach((group, index) => {
+        const groupId = `group-${eventDate}-${index}`;
+        const groupEl = document.getElementById(groupId);
+        if (groupEl) {
+            const parentDropzone = groupEl.closest('.table-dropzone');
+            if (parentDropzone) {
+                group.physicalTableId = parentDropzone.getAttribute('data-table-id');
+            } else {
+                delete group.physicalTableId; // unassigned
+            }
+        }
+    });
+
+    try {
+        await saveGroups(floorPlanGroups, eventDate);
+        alert('Floor plan layout saved successfully!');
+    } catch (e) {
+        console.error('Save floor plan failed', e);
+        alert('Error saving floor plan');
+    }
+}
+
+window.loadFloorPlan = loadFloorPlan;
+window.saveFloorPlan = saveFloorPlan;

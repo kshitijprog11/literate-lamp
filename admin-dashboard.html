@@ -338,6 +338,7 @@
             <button onclick="showSection('reservations')" id="nav-reservations">Reservations</button>
             <button onclick="showSection('grouping')" id="nav-grouping">Create Groups</button>
             <button onclick="showSection('groups')" id="nav-groups">View Groups</button>
+            <button onclick="showSection('floor-plan')" id="nav-floor-plan">Floor Plan</button>
             <button onclick="showSection('notifications')" id="nav-notifications">Send Notifications</button>
         </div>
 
@@ -438,6 +439,89 @@
 
             <div id="groups-container">
                 <div class="loading">Loading groups...</div>
+            </div>
+        </div>
+
+        <!-- Floor Plan Section -->
+        <div id="floor-plan-section" class="admin-section hidden">
+            <h2>Restaurant Floor Plan</h2>
+            <div class="controls">
+                <div class="date-filter">
+                    <label>Select event date:</label>
+                    <input type="date" id="floor-plan-date" onchange="loadFloorPlan()">
+                </div>
+                <button onclick="saveFloorPlan()" class="btn-primary">Save Layout</button>
+            </div>
+
+            <div style="display: flex; gap: 2rem; margin-top: 1rem; flex-wrap: wrap;">
+                <div
+                    style="width: 300px; background: var(--color-neutral-50); padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--color-neutral-200);">
+                    <h3 style="margin-bottom: 1rem; font-size: 1.1em; color: var(--color-primary);">Generated Groups
+                    </h3>
+                    <p style="font-size: 0.85em; color: var(--color-neutral-600); margin-bottom: 1rem;">Drag these
+                        groups onto the physical tables to assign them a spot.</p>
+                    <div id="unassigned-groups" class="dropzone"
+                        style="min-height: 400px; display: flex; flex-direction: column; gap: 10px; padding: 10px; background: white; border: 2px dashed var(--color-neutral-300); border-radius: var(--radius-md);">
+                        <p class="no-data" style="padding: 1rem;">Select a date to view groups</p>
+                    </div>
+                </div>
+
+                <div
+                    style="flex-grow: 1; min-width: 500px; background: var(--color-neutral-50); padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--color-neutral-200);">
+                    <h3 style="margin-bottom: 1rem; font-size: 1.1em; color: var(--color-primary);">Physical Layout</h3>
+                    <div id="restaurant-floor"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 30px; padding: 20px;">
+
+                        <div class="physical-table"
+                            style="background: white; border: 3px solid var(--color-neutral-200); border-radius: 50%; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; flex-direction: column; margin: 0 auto; box-shadow: var(--shadow-sm);">
+                            <strong style="color: var(--color-neutral-700);">Table 1</strong>
+                            <div class="table-dropzone dropzone" data-table-id="1"
+                                style="width: 80%; height: 80px; margin-top: 10px; border: 2px dashed var(--color-neutral-300); border-radius: var(--radius-sm); padding: 5px; overflow-y: auto;">
+                            </div>
+                        </div>
+
+                        <div class="physical-table"
+                            style="background: white; border: 3px solid var(--color-neutral-200); border-radius: 50%; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; flex-direction: column; margin: 0 auto; box-shadow: var(--shadow-sm);">
+                            <strong style="color: var(--color-neutral-700);">Table 2</strong>
+                            <div class="table-dropzone dropzone" data-table-id="2"
+                                style="width: 80%; height: 80px; margin-top: 10px; border: 2px dashed var(--color-neutral-300); border-radius: var(--radius-sm); padding: 5px; overflow-y: auto;">
+                            </div>
+                        </div>
+
+                        <div class="physical-table"
+                            style="background: white; border: 3px solid var(--color-neutral-200); border-radius: 50%; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; flex-direction: column; margin: 0 auto; box-shadow: var(--shadow-sm);">
+                            <strong style="color: var(--color-neutral-700);">Table 3</strong>
+                            <div class="table-dropzone dropzone" data-table-id="3"
+                                style="width: 80%; height: 80px; margin-top: 10px; border: 2px dashed var(--color-neutral-300); border-radius: var(--radius-sm); padding: 5px; overflow-y: auto;">
+                            </div>
+                        </div>
+
+                        <div class="physical-table"
+                            style="background: white; border: 3px solid var(--color-neutral-200); border-radius: 50%; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; flex-direction: column; margin: 0 auto; box-shadow: var(--shadow-sm);">
+                            <strong style="color: var(--color-neutral-700);">Table 4</strong>
+                            <div class="table-dropzone dropzone" data-table-id="4"
+                                style="width: 80%; height: 80px; margin-top: 10px; border: 2px dashed var(--color-neutral-300); border-radius: var(--radius-sm); padding: 5px; overflow-y: auto;">
+                            </div>
+                        </div>
+
+                        <div class="physical-table"
+                            style="background: white; border: 3px solid var(--color-neutral-200); border-radius: 50%; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; flex-direction: column; margin: 0 auto; box-shadow: var(--shadow-sm);">
+                            <strong style="color: var(--color-neutral-700);">Table 5</strong>
+                            <div class="table-dropzone dropzone" data-table-id="5"
+                                style="width: 80%; height: 80px; margin-top: 10px; border: 2px dashed var(--color-neutral-300); border-radius: var(--radius-sm); padding: 5px; overflow-y: auto;">
+                            </div>
+                        </div>
+
+                        <div class="physical-table"
+                            style="background: white; border: 3px solid var(--color-neutral-200); border-radius: 50%; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; flex-direction: column; margin: 0 auto; box-shadow: var(--shadow-sm);">
+                            <strong style="color: var(--color-neutral-700);">Table 6</strong>
+                            <div class="table-dropzone dropzone" data-table-id="6"
+                                style="width: 80%; height: 80px; margin-top: 10px; border: 2px dashed var(--color-neutral-300); border-radius: var(--radius-sm); padding: 5px; overflow-y: auto;">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
             </div>
         </div>
 

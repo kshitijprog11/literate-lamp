@@ -17,6 +17,65 @@ let finishButtonElement = null;
 document.addEventListener('DOMContentLoaded', () => {
     setMinimumReservationDate();
 
+    // Waitlist tracking
+    let isWaitlistMode = false;
+    const dateInput = document.getElementById('eventDate');
+    const submitBtnSpan = document.getElementById('button-text');
+
+    if (dateInput) {
+        dateInput.addEventListener('change', async (e) => {
+            const date = e.target.value;
+            if (!date) return;
+
+            isWaitlistMode = false;
+            if (submitBtnSpan) submitBtnSpan.textContent = 'Checking availability...';
+            const submitBtn = document.getElementById('submit-button');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.style.background = '';
+                submitBtn.style.borderColor = '';
+            }
+
+            try {
+                let count = 0;
+                if (!window.FAST_TESTING_MODE && window.db && window.getDocs) {
+                    const q = window.query(
+                        window.collection(window.db, 'reservations'),
+                        window.where("eventDate", "==", date)
+                    );
+                    const snap = await window.getDocs(q);
+                    count = snap.size;
+                } else {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key.startsWith('reservation_')) {
+                            try {
+                                const data = JSON.parse(localStorage.getItem(key));
+                                if (data.eventDate === date && data.status !== 'Waitlisted') count++;
+                            } catch (err) { }
+                        }
+                    }
+                }
+
+                if (count >= 50) { // Max capacity threshold
+                    isWaitlistMode = true;
+                    if (submitBtnSpan) submitBtnSpan.textContent = 'Join Waitlist (Event Full)';
+                    if (submitBtn) {
+                        submitBtn.style.background = 'var(--accent-color)';
+                        submitBtn.style.borderColor = 'var(--accent-dark)';
+                    }
+                } else {
+                    if (submitBtnSpan) submitBtnSpan.textContent = 'Confirm Reservation';
+                }
+            } catch (err) {
+                console.warn('Error checking availability:', err);
+                if (submitBtnSpan) submitBtnSpan.textContent = 'Confirm Reservation';
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+    }
+
     const form = document.getElementById('reservation-form');
     const submitButton = document.getElementById('submit-button');
     const reservationDetailsSection = document.getElementById('reservation-details-section');
@@ -41,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateAnsweredSummary(summaryElementRef, savedPersonalityAnswers);
 
     if (form) {
-        form.addEventListener('submit', (event) => {
+        form.addEventListener('submit', async (event) => {
             event.preventDefault();
 
             if (currentStep !== 'details') {
@@ -70,10 +129,24 @@ document.addEventListener('DOMContentLoaded', () => {
             pendingReservationData = {
                 ...reservationData,
                 createdAt: new Date().toISOString(),
-                status: 'pending-personality',
+                status: isWaitlistMode ? 'Waitlisted' : 'pending-personality',
                 amount: 75,
                 paymentStatus: 'pending'
             };
+
+            if (isWaitlistMode) {
+                toggleFinishButtonState(true, submitButton, document.getElementById('spinner'), submitBtnSpan);
+                try {
+                    await saveWaitlist(pendingReservationData);
+                    alert('You have been added to the waitlist! We will alert you if a spot opens up.');
+                    window.location.href = 'index.html';
+                } catch (e) {
+                    alert('Error joining waitlist: ' + e.message);
+                } finally {
+                    toggleFinishButtonState(false, submitButton, document.getElementById('spinner'), submitBtnSpan);
+                }
+                return;
+            }
 
             currentStep = 'personality';
             showPersonalityStep(reservationDetailsSection, personalityTestSection);

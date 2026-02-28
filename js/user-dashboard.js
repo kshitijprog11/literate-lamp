@@ -166,6 +166,95 @@ function renderDashboard(reservation) {
             </div>
         `;
     }
+
+    // Check for Table Teaser
+    loadTableTeaser(reservation.eventDate, reservation.email);
+}
+
+async function loadTableTeaser(eventDate, email) {
+    let groups = [];
+
+    // 1. Try Firebase first
+    if (!window.FAST_TESTING_MODE && window.db) {
+        try {
+            const q = window.query(
+                window.collection(window.db, 'grouped_events'),
+                window.where("date", "==", eventDate)
+            );
+            const snapshot = await window.getDocs(q);
+            if (!snapshot.empty) {
+                const docs = snapshot.docs.map(doc => doc.data());
+                docs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                groups = docs[0].groups || [];
+            }
+        } catch (error) {
+            console.warn("Firebase group fetch failed:", error);
+        }
+    }
+
+    // 2. Fallback to localStorage
+    if (groups.length === 0) {
+        const localGroups = localStorage.getItem('groups_' + eventDate);
+        if (localGroups) {
+            try {
+                groups = JSON.parse(localGroups);
+            } catch (e) { }
+        }
+    }
+
+    if (groups.length === 0) return;
+
+    // 3. Find this user's group
+    const myGroup = groups.find(g => g.members.some(m => m.email.toLowerCase() === email.toLowerCase()));
+
+    if (myGroup) {
+        renderTeaserStats(myGroup);
+    }
+}
+
+function renderTeaserStats(group) {
+    const teaserSection = document.getElementById('table-teaser-section');
+    if (!teaserSection) return;
+
+    teaserSection.classList.remove('hidden');
+
+    const size = group.members.length;
+    let rolesCount = { catalyst: 0, storyteller: 0, interviewer: 0, listener: 0 };
+
+    group.members.forEach(m => {
+        const role = m.personalityResults?.fullProfile?.dominantRole;
+        if (role && rolesCount[role] !== undefined) {
+            rolesCount[role]++;
+        } else {
+            rolesCount.listener++; // Fallback
+        }
+    });
+
+    const topRoles = Object.entries(rolesCount)
+        .filter(([_, count]) => count > 0)
+        .sort((a, b) => b[1] - a[1]);
+
+    const roleText = topRoles.map(([role, count]) => `${count} ${role.charAt(0).toUpperCase() + role.slice(1)}${count > 1 ? 's' : ''}`).join(', ');
+    const intentStr = group.intent ? group.intent.replace('_', ' ').toUpperCase() : 'MIXED';
+
+    const html = `
+        <h4 style="color: var(--primary-color); margin-bottom: 1rem;">🍽️ Meet Your Table Teaser</h4>
+        <div style="background: rgba(255,255,255,0.7); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--accent-light);">
+            <p style="margin-bottom: 0.8rem; font-size: 1.1em;"><strong>Table Size:</strong> ${size} wonderful people</p>
+            <p style="margin-bottom: 0.8rem; font-size: 1.1em;"><strong>Table Intent:</strong> ${intentStr}</p>
+            <p style="margin-bottom: 0.8rem; font-size: 1.1em;"><strong>Table Energy Level:</strong> ${group.averageScore}</p>
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed #ccc;">
+                <p style="font-size: 0.9em; color: #555; text-transform: uppercase; font-weight: bold; margin-bottom: 0.5rem;">
+                    Sneak Peek at your Dynamic:
+                </p>
+                <p style="font-size: 1.05em; color: var(--primary-color);">
+                    You'll be sitting with <strong>${roleText}</strong>.
+                </p>
+            </div>
+        </div>
+    `;
+
+    teaserSection.innerHTML = html;
 }
 
 function renderRadarChart(stats) {
