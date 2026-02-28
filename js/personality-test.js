@@ -232,8 +232,8 @@ const initPersonalityTest = function () {
     }
 
     function calculateAndShowResults() {
-        const score = calculatePersonalityScore(answers);
-        const personality = determinePersonalityType(score);
+        const result = calculatePersonalityScore(answers);
+        const personality = determinePersonalityType(result);
 
         // Hide test content, show results
         testContent.classList.add('hidden');
@@ -241,7 +241,7 @@ const initPersonalityTest = function () {
 
         // Display results
         document.getElementById('personality-results').innerHTML = `
-            <div class="personality-score">${score}</div>
+            <div class="personality-score">${result.score}</div>
             <div class="personality-type">${personality.type}</div>
             <div class="personality-description">${personality.description}</div>
             <div class="personality-traits">
@@ -250,11 +250,15 @@ const initPersonalityTest = function () {
                     ${personality.traits.map(trait => `<li>${trait}</li>`).join('')}
                 </ul>
             </div>
+            <div style="margin-top: 15px; font-size: 0.9em; opacity: 0.8; text-transform: capitalize;">
+                <strong>Core Intent:</strong> ${result.dominantIntent.replace('_', ' ')} | <strong>Table Role:</strong> ${result.dominantRole}
+            </div>
         `;
 
         // Store results for later use
         sessionStorage.setItem('personalityResults', JSON.stringify({
-            score,
+            score: result.score, // keeping for backwards compatibility
+            fullProfile: result,
             personality,
             answers,
             completedAt: new Date().toISOString(),

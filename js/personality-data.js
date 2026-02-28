@@ -1,140 +1,92 @@
-const MAX_SCORE_PER_QUESTION = 5;
-const MIN_SCORE_PER_QUESTION = 1;
-
 export const personalityQuestions = [
     {
-        text: "How do you prefer to spend your evening?",
+        text: "What is your primary goal for a Mindful Dining experience?",
         options: [
-            { text: "In a quiet, intimate setting with close friends", score: 2 },
-            { text: "At a small gathering with interesting conversations", score: 3 },
-            { text: "At a moderate-sized party with good music and food", score: 4 },
-            { text: "At a large, lively event with lots of people to meet", score: 5 }
+            { text: "Professional networking and business connections", traits: { intent: "networking", role: "catalyst", energy: 4 } },
+            { text: "Fun, casual conversations and laughs", traits: { intent: "casual", role: "storyteller", energy: 4 } },
+            { text: "Finding deep, meaningful personal friendships", traits: { intent: "deep_connection", role: "interviewer", energy: 2 } },
+            { text: "Quietly enjoying the food and observing others", traits: { intent: "casual", role: "listener", energy: 1 } }
         ]
     },
     {
-        text: "When meeting new people, you typically:",
+        text: "In a group of six people, you usually find yourself:",
         options: [
-            { text: "Wait for them to approach you first", score: 1 },
-            { text: "Respond warmly when they initiate conversation", score: 2 },
-            { text: "Engage in friendly small talk", score: 4 },
-            { text: "Immediately introduce yourself and start a conversation", score: 5 }
+            { text: "Leading the conversation and telling stories", traits: { intent: "casual", role: "storyteller", energy: 5 } },
+            { text: "Asking questions and learning about others", traits: { intent: "deep_connection", role: "interviewer", energy: 3 } },
+            { text: "Listening intently and chiming in occasionally", traits: { intent: "casual", role: "listener", energy: 2 } },
+            { text: "Debating ideas and challenging perspectives", traits: { intent: "networking", role: "catalyst", energy: 4 } }
         ]
     },
     {
-        text: "Your ideal dinner conversation includes:",
+        text: "When a sudden silence falls over the dinner table, you:",
         options: [
-            { text: "Deep, philosophical discussions", score: 2 },
-            { text: "Sharing personal experiences and stories", score: 3 },
-            { text: "Light-hearted banter and current events", score: 4 },
-            { text: "Lots of laughter and group participation", score: 5 }
+            { text: "Immediately speak up to fill the void", traits: { intent: "casual", role: "catalyst", energy: 5 } },
+            { text: "Ask someone a specific question to get them talking", traits: { intent: "deep_connection", role: "interviewer", energy: 4 } },
+            { text: "Smile comfortably; silence doesn't bother you", traits: { intent: "casual", role: "listener", energy: 2 } },
+            { text: "Use the moment to reflect on what was just said", traits: { intent: "deep_connection", role: "listener", energy: 1 } }
         ]
     },
     {
-        text: "How comfortable are you with silence during meals?",
+        text: "Your ideal restaurant vibe is:",
         options: [
-            { text: "Very comfortable, I enjoy peaceful moments", score: 1 },
-            { text: "Comfortable, it allows for thoughtful reflection", score: 2 },
-            { text: "Somewhat comfortable, but prefer gentle conversation", score: 3 },
-            { text: "Uncomfortable, I prefer continuous conversation", score: 5 }
+            { text: "Loud, energetic, and bustling", traits: { intent: "casual", role: "storyteller", energy: 5 } },
+            { text: "A trendy, upbeat spot with background music", traits: { intent: "networking", role: "catalyst", energy: 4 } },
+            { text: "A calm, well-lit cafe with soft acoustics", traits: { intent: "deep_connection", role: "interviewer", energy: 2 } },
+            { text: "A very quiet, distraction-free intimate space", traits: { intent: "deep_connection", role: "listener", energy: 1 } }
         ]
     },
     {
-        text: "When dining with strangers, you:",
+        text: "If someone strongly disagrees with your opinion during dinner:",
         options: [
-            { text: "Feel nervous and prefer to observe", score: 1 },
-            { text: "Are cautious but gradually warm up", score: 2 },
-            { text: "Are friendly and ask questions about them", score: 4 },
-            { text: "Are excited and immediately try to connect", score: 5 }
+            { text: "You eagerly engage in a lively debate", traits: { intent: "networking", role: "catalyst", energy: 5 } },
+            { text: "You ask them to elaborate on why they think that", traits: { intent: "deep_connection", role: "interviewer", energy: 3 } },
+            { text: "You politely agree to disagree and change the subject", traits: { intent: "casual", role: "storyteller", energy: 3 } },
+            { text: "You quietly listen to their perspective without pushing back", traits: { intent: "casual", role: "listener", energy: 1 } }
         ]
     },
     {
-        text: "Your preferred table size for dining is:",
+        text: "When someone is telling a long story, you are typically:",
         options: [
-            { text: "2-3 people for intimate conversations", score: 1 },
-            { text: "4-5 people for balanced interaction", score: 3 },
-            { text: "6-8 people for diverse perspectives", score: 4 },
-            { text: "8+ people for dynamic group energy", score: 5 }
+            { text: "Waiting for the right moment to share a similar story of your own", traits: { intent: "casual", role: "storyteller", energy: 4 } },
+            { text: "Nodding along and asking follow-up questions", traits: { intent: "deep_connection", role: "interviewer", energy: 3 } },
+            { text: "Listening quietly, absorbing the details", traits: { intent: "deep_connection", role: "listener", energy: 2 } },
+            { text: "Analyzing the story to find a lesson or business application", traits: { intent: "networking", role: "catalyst", energy: 3 } }
         ]
     },
     {
-        text: "How do you handle disagreements during dinner?",
+        text: "After a 3-hour dinner party with strangers, you feel:",
         options: [
-            { text: "Avoid conflict and change the subject", score: 1 },
-            { text: "Listen carefully and offer gentle perspectives", score: 2 },
-            { text: "Engage respectfully while maintaining harmony", score: 3 },
-            { text: "Enjoy debating different viewpoints", score: 5 }
+            { text: "Completely exhausted and need to be alone", traits: { intent: "casual", role: "listener", energy: 1 } },
+            { text: "Satisfied, but definitely ready for bed", traits: { intent: "deep_connection", role: "interviewer", energy: 2 } },
+            { text: "Content and happy to chat a bit more", traits: { intent: "networking", role: "catalyst", energy: 4 } },
+            { text: "Energized! You want to go get drinks afterward", traits: { intent: "casual", role: "storyteller", energy: 5 } }
         ]
     },
     {
-        text: "What energizes you most during social dining?",
+        text: "What topics do you find most fascinating to discuss?",
         options: [
-            { text: "One-on-one meaningful connections", score: 1 },
-            { text: "Small group intimate sharing", score: 2 },
-            { text: "Balanced conversation with several people", score: 3 },
-            { text: "Large group dynamic interactions", score: 5 }
+            { text: "Industry trends, startups, and career growth", traits: { intent: "networking", role: "catalyst", energy: 4 } },
+            { text: "Psychology, philosophy, and personal growth", traits: { intent: "deep_connection", role: "interviewer", energy: 2 } },
+            { text: "Pop culture, travel stories, and entertainment", traits: { intent: "casual", role: "storyteller", energy: 4 } },
+            { text: "I prefer to listen to whatever others are passionate about", traits: { intent: "casual", role: "listener", energy: 1 } }
         ]
     },
     {
-        text: "How do you typically share food?",
+        text: "How do you feel about being the center of attention?",
         options: [
-            { text: "Prefer to keep my own plate", score: 1 },
-            { text: "Will share if asked", score: 2 },
-            { text: "Enjoy sharing and trying others' dishes", score: 4 },
-            { text: "Love family-style dining and sharing everything", score: 5 }
+            { text: "I love it and thrive in the spotlight", traits: { intent: "casual", role: "storyteller", energy: 5 } },
+            { text: "I'm comfortable with it if it's for a purpose", traits: { intent: "networking", role: "catalyst", energy: 4 } },
+            { text: "I can handle it briefly, but prefer deflecting back to the group", traits: { intent: "deep_connection", role: "interviewer", energy: 2 } },
+            { text: "I actively try to avoid being the center of attention", traits: { intent: "casual", role: "listener", energy: 1 } }
         ]
     },
     {
-        text: "After a dinner party, you feel:",
+        text: "Ultimately, what makes a dinner party successful for you?",
         options: [
-            { text: "Exhausted and need alone time to recharge", score: 1 },
-            { text: "Satisfied but ready for quiet time", score: 2 },
-            { text: "Content and might enjoy a calm activity", score: 3 },
-            { text: "Energized and ready for more social activities", score: 5 }
-        ]
-    },
-    {
-        text: "When someone shares personal information, you:",
-        options: [
-            { text: "Listen quietly and offer support if asked", score: 1 },
-            { text: "Respond with empathy and related experiences", score: 3 },
-            { text: "Ask thoughtful follow-up questions", score: 4 },
-            { text: "Encourage them to share more with the group", score: 5 }
-        ]
-    },
-    {
-        text: "Your approach to trying new cuisines is:",
-        options: [
-            { text: "Cautious, prefer familiar foods", score: 1 },
-            { text: "Open but want recommendations", score: 2 },
-            { text: "Adventurous and enjoy discussing flavors", score: 4 },
-            { text: "Extremely adventurous and love sharing discoveries", score: 5 }
-        ]
-    },
-    {
-        text: "How do you handle being the center of attention?",
-        options: [
-            { text: "Uncomfortable and try to redirect focus", score: 1 },
-            { text: "Modest but can handle brief moments", score: 2 },
-            { text: "Comfortable sharing when it's natural", score: 3 },
-            { text: "Enjoy it and use it to connect with others", score: 5 }
-        ]
-    },
-    {
-        text: "Your ideal dinner timing is:",
-        options: [
-            { text: "Early and relaxed with time to unwind after", score: 1 },
-            { text: "Traditional timing with comfortable pacing", score: 2 },
-            { text: "Flexible timing that works for everyone", score: 3 },
-            { text: "Late and extended for maximum social time", score: 5 }
-        ]
-    },
-    {
-        text: "When planning a group dinner, you:",
-        options: [
-            { text: "Prefer someone else to organize", score: 1 },
-            { text: "Help with planning but prefer not to lead", score: 2 },
-            { text: "Contribute ideas and help coordinate", score: 4 },
-            { text: "Love to organize and bring people together", score: 5 }
+            { text: "Making a valuable connection that lasts beyond the dinner", traits: { intent: "networking", role: "catalyst", energy: 4 } },
+            { text: "Laughing so hard my stomach hurts", traits: { intent: "casual", role: "storyteller", energy: 5 } },
+            { text: "Having a profound conversation that changed my perspective", traits: { intent: "deep_connection", role: "interviewer", energy: 2 } },
+            { text: "Feeling comfortable, safe, and enjoying an excellent meal", traits: { intent: "casual", role: "listener", energy: 1 } }
         ]
     }
 ];
@@ -144,7 +96,11 @@ export function calculatePersonalityScore(answerIndices) {
         throw new Error('All personality questions must be answered before calculating a score.');
     }
 
-    let totalScore = 0;
+    let stats = {
+        intents: { networking: 0, casual: 0, deep_connection: 0 },
+        roles: { catalyst: 0, storyteller: 0, interviewer: 0, listener: 0 },
+        energyTotal: 0
+    };
 
     answerIndices.forEach((answerIndex, questionIndex) => {
         const question = personalityQuestions[questionIndex];
@@ -154,76 +110,93 @@ export function calculatePersonalityScore(answerIndices) {
             throw new Error('Invalid answer selection detected.');
         }
 
-        totalScore += selectedOption.score;
+        stats.intents[selectedOption.traits.intent]++;
+        stats.roles[selectedOption.traits.role]++;
+        stats.energyTotal += selectedOption.traits.energy;
     });
 
-    const maxPossibleScore = personalityQuestions.length * MAX_SCORE_PER_QUESTION;
-    const minPossibleScore = personalityQuestions.length * MIN_SCORE_PER_QUESTION;
+    // Determine dominant intent
+    const dominantIntent = Object.keys(stats.intents).reduce((a, b) => stats.intents[a] > stats.intents[b] ? a : b);
 
-    const normalizedScore = Math.round(
-        ((totalScore - minPossibleScore) / (maxPossibleScore - minPossibleScore)) * 100
-    );
+    // Determine dominant role
+    const dominantRole = Object.keys(stats.roles).reduce((a, b) => stats.roles[a] > stats.roles[b] ? a : b);
 
-    return Math.max(0, Math.min(100, normalizedScore));
+    // Calculate normalized energy score (0-100)
+    // Min possible energy = 10 (1 * 10), Max = 50 (5 * 10)
+    const minEnergy = 10;
+    const maxEnergy = 50;
+    const normalizedEnergy = Math.round(((stats.energyTotal - minEnergy) / (maxEnergy - minEnergy)) * 100);
+
+    // We return a "Composite Social Profile" instead of just a raw number, but we structure it 
+    // so previous code that expects just a number doesn't completely crash immediately.
+    // The "score" will act as the "Energy Score", saving the rest in a detailed object.
+    return {
+        score: Math.max(0, Math.min(100, normalizedEnergy)),
+        dominantIntent: dominantIntent,
+        dominantRole: dominantRole,
+        totalStats: stats
+    };
 }
 
-export function determinePersonalityType(score) {
-    if (score >= 80) {
+export function determinePersonalityType(profile) {
+    // If the old system calls this with just a number, handle it gracefully
+    let score = typeof profile === 'number' ? profile : profile.score;
+    let intent = typeof profile === 'number' ? 'casual' : profile.dominantIntent;
+    let role = typeof profile === 'number' ? 'storyteller' : profile.dominantRole;
+
+    if (role === 'catalyst' && intent === 'networking') {
         return {
-            type: "The Social Connector",
-            description: "You thrive in social settings and love meeting new people. You're likely to be the conversation starter at your table and enjoy group dynamics.",
+            type: "The Networker",
+            description: "You are highly driven by making valuable connections. You have the energy to initiate conversations and prefer groups where everyone brings ideas to the table.",
             traits: [
-                "Enjoys lively group conversations",
-                "Comfortable with strangers",
-                "Prefers shared dining experiences",
-                "Values social connections"
-            ]
+                "Seeks professional and valuable connections",
+                "Often drives the conversation",
+                "Appreciates lively debates and fast-paced chats",
+                "Shares knowledge and resources freely"
+            ],
+            role: "catalyst",
+            intent: "networking"
         };
-    } else if (score >= 60) {
+    } else if (role === 'storyteller' || (role === 'catalyst' && intent === 'casual')) {
         return {
-            type: "The Thoughtful Conversationalist",
-            description: "You enjoy meaningful discussions and prefer quality interactions. You appreciate both listening and sharing insights with others.",
+            type: "The Entertainer",
+            description: "You bring the fun! You love sharing stories, making people laugh, and ensuring the vibe is always energetic and enthusiastic.",
             traits: [
-                "Values deep, meaningful conversations",
-                "Good listener and thoughtful speaker",
-                "Enjoys learning about others",
-                "Prefers smaller group settings"
-            ]
+                "Loves being the center of attention",
+                "Shares engaging stories and humor",
+                "Thrives in loud, bustling environments",
+                "Highly energetic and outgoing"
+            ],
+            role: "storyteller",
+            intent: "casual"
         };
-    } else if (score >= 40) {
+    } else if (role === 'interviewer' || intent === 'deep_connection') {
         return {
-            type: "The Balanced Diner",
-            description: "You're adaptable and can enjoy various social settings. You're comfortable both leading conversations and letting others take the spotlight.",
+            type: "The Empathetic Explorer",
+            description: "You skip the small talk. You are deeply interested in psychology, philosophy, and learning what truly makes the people around you tick.",
             traits: [
-                "Flexible and adaptable",
-                "Enjoys variety in conversations",
-                "Good at reading social cues",
-                "Comfortable in different group sizes"
-            ]
+                "Asks excellent, thought-provoking questions",
+                "Seeks deep, meaningful connections",
+                "Prefers intimate, quieter dining spaces",
+                "Makes others feel heard and valued"
+            ],
+            role: "interviewer",
+            intent: "deep_connection"
         };
-    } else if (score >= 20) {
+    } else {
         return {
-            type: "The Intimate Sharer",
-            description: "You prefer smaller, more intimate gatherings where you can form deeper connections. You value quality over quantity in social interactions.",
+            type: "The Peaceful Observer",
+            description: "You are the grounding force at any table. You prefer to listen, observe, and enjoy your meal without the pressure of driving the conversation.",
             traits: [
-                "Prefers one-on-one or small group conversations",
-                "Values privacy and intimacy",
-                "Thoughtful and reflective",
-                "Enjoys meaningful connections"
-            ]
+                "Excellent, attentive listener",
+                "Enjoys calm and focused dining experiences",
+                "Doesn't need to be the center of attention",
+                "Reflective and considerate"
+            ],
+            role: "listener",
+            intent: "casual"
         };
     }
-
-    return {
-        type: "The Quiet Observer",
-        description: "You enjoy observing and listening more than speaking. You appreciate calm, peaceful dining environments and thoughtful companions.",
-        traits: [
-            "Excellent listener",
-            "Prefers calm, quiet environments",
-            "Thoughtful and introspective",
-            "Values peaceful dining experiences"
-        ]
-    };
 }
 
 export function buildPersonalityAnswerSummary(answerIndices) {
@@ -234,7 +207,7 @@ export function buildPersonalityAnswerSummary(answerIndices) {
         return {
             question: question.text,
             response: choice?.text || '',
-            score: choice?.score ?? 0
+            score: choice?.traits?.energy ?? 0
         };
     });
 }
