@@ -1,363 +1,204 @@
 // Grouping Algorithm for Mindful Dining
-// This algorithm groups users with similar personality scores for optimal dining experiences
+// This algorithm groups users based on matching "Intent" and balancing "Roles"
+// to create the perfect dynamic dining experience.
 
 /**
- * Main grouping function that takes an array of user objects and returns groups
- * @param {Array} users - Array of user objects with personality scores
+ * Main grouping function that takes an array of user objects and returns curated tables
+ * @param {Array} users - Array of user objects with detailed personality profiles
  * @param {Object} options - Configuration options for grouping
  * @returns {Array} Array of groups, each containing user objects
  */
 function createDiningGroups(users, options = {}) {
     const { eventDate = null, ...configOverrides } = options;
-    
-    // Default configuration
+
+    // Default configuration for table sizes
     const config = {
-        minGroupSize: 2,
-        maxGroupSize: 12,
+        minGroupSize: 4, // 4 is the ideal minimum for a balanced dynamic
+        maxGroupSize: 8,
         idealGroupSize: 6,
-        scoreThreshold: 10, // Maximum score difference within a group
-        diversityFactor: 0.2, // 0 = strict matching, 1 = random
         ...configOverrides
     };
-    
-    // Validate input
-    if (!users || users.length === 0) {
-        return [];
-    }
-    
-    // Filter for valid users with required properties
-    const validUsers = users.filter(user => 
-        user.personalityResults && 
-        typeof user.personalityResults.score === 'number' &&
-        user.firstName && 
+
+    if (!users || users.length === 0) return [];
+
+    // 1. Filter out invalid users
+    const validUsers = users.filter(user =>
+        user.personalityResults &&
+        user.personalityResults.fullProfile &&
+        user.firstName &&
         user.lastName &&
         user.email
     );
-    
+
     if (validUsers.length === 0) {
-        console.warn('No valid users with personality scores found for grouping.');
+        console.warn('No valid users with new personality profiles found.');
         return [];
     }
-    
-    // Sort users by personality score to facilitate clustering
-    const sortedUsers = [...validUsers].sort((a, b) => 
-        a.personalityResults.score - b.personalityResults.score
-    );
-    
-    // Create initial clusters based on score proximity
-    const groups = createClusters(sortedUsers, config);
-    
-    // Optimize groups (balance sizes, handle small groups)
-    const optimizedGroups = optimizeGroups(groups, config);
-    
-    // Add metadata to final groups
-    const finalGroups = optimizedGroups.map((group, index) => ({
-        id: `group_${Date.now()}_${index}`,
-        members: group,
-        size: group.length,
-        averageScore: calculateAverageScore(group),
-        scoreRange: calculateScoreRange(group),
-        createdAt: new Date().toISOString(),
-        tableAssignment: `Table ${index + 1}`,
-        eventDate
-    }));
-    
-    return finalGroups;
-}
 
-/**
- * Creates initial clusters based on personality scores.
- * Iterates through sorted users and groups them by score threshold.
- */
-function createClusters(sortedUsers, config) {
-    const groups = [];
-    let currentGroup = [];
-    let currentGroupScore = null;
-    
-    for (const user of sortedUsers) {
-        const userScore = user.personalityResults.score;
-        
-        // Start a new group if current is empty
-        if (currentGroup.length === 0) {
-            currentGroup = [user];
-            currentGroupScore = userScore;
+    // 2. Bucket users by their Core Intent (The most important matching factor)
+    // People who want to Network should sit with Networkers. People wanting Deep Connections sit together.
+    const intentBuckets = {
+        networking: [],
+        deep_connection: [],
+        casual: []
+    };
+
+    validUsers.forEach(user => {
+        const intent = user.personalityResults.fullProfile.dominantIntent;
+        if (intentBuckets[intent]) {
+            intentBuckets[intent].push(user);
+        } else {
+            intentBuckets.casual.push(user); // Fallback
         }
-        // Check if user fits in current group (score threshold and max size)
-        else if (
-            Math.abs(userScore - currentGroupScore) > config.scoreThreshold ||
-            currentGroup.length >= config.maxGroupSize
-        ) {
-            // Push current group if it meets minimum size
-            if (currentGroup.length >= config.minGroupSize) {
-                groups.push([...currentGroup]);
-            } else {
-                // If too small, try to merge with previous group if there's space
-                if (groups.length > 0 && groups[groups.length - 1].length < config.maxGroupSize) {
-                    groups[groups.length - 1].push(...currentGroup);
+    });
+
+    const allGroups = [];
+    let tableCounter = 1;
+
+    // 3. Form balanced tables within each Intent bucket
+    Object.keys(intentBuckets).forEach(intentKey => {
+        let usersInBucket = intentBuckets[intentKey];
+
+        // While we have enough people to form a table
+        while (usersInBucket.length >= config.minGroupSize) {
+
+            // Try to pull exactly idealGroupSize, or however many are left if it's <= maxGroupSize
+            let targetSize = config.idealGroupSize;
+            if (usersInBucket.length <= config.maxGroupSize && usersInBucket.length >= config.minGroupSize) {
+                targetSize = usersInBucket.length;
+            }
+
+            // Extract a balanced group
+            const { group, remainingUsers } = extractBalancedGroup(usersInBucket, targetSize);
+            usersInBucket = remainingUsers; // Update the bucket with those left behind
+
+            allGroups.push(finalizeGroupObject(group, tableCounter++, intentKey, eventDate));
+        }
+
+        // Handle stragglers in this bucket (less than minGroupSize)
+        // For a real app, you might mix intents here, but for now we will force them into the last created group of that intent 
+        // OR create a small sub-optimal table if no groups exist for that intent.
+        if (usersInBucket.length > 0) {
+            // Find existing tables with the same intent that aren't completely full
+            const compatibleGroups = allGroups.filter(g => g.intent === intentKey && g.members.length < config.maxGroupSize);
+
+            usersInBucket.forEach(straggler => {
+                if (compatibleGroups.length > 0) {
+                    // Add to the smallest compatible group
+                    compatibleGroups.sort((a, b) => a.members.length - b.members.length);
+                    compatibleGroups[0].members.push(straggler);
+                    compatibleGroups[0].size++;
                 } else {
-                    // Otherwise push as is (will be handled by optimizeGroups)
-                    groups.push([...currentGroup]);
+                    // We must create a sub-optimal small table or force mix intents. 
+                    // To keep it simple, we create a small table.
+                    const existingSmallTable = allGroups.find(g => g.intent === intentKey && g.members.length < config.minGroupSize);
+                    if (existingSmallTable) {
+                        existingSmallTable.members.push(straggler);
+                        existingSmallTable.size++;
+                    } else {
+                        allGroups.push(finalizeGroupObject([straggler], tableCounter++, intentKey, eventDate));
+                    }
                 }
-            }
-            
-            // Start the new group with current user
-            currentGroup = [user];
-            currentGroupScore = userScore;
+            });
         }
-        else {
-            // Add user to current group
-            currentGroup.push(user);
-        }
-    }
-    
-    // Handle the remaining users in currentGroup
-    if (currentGroup.length > 0) {
-        if (currentGroup.length >= config.minGroupSize) {
-            groups.push(currentGroup);
-        } else if (groups.length > 0) {
-            // Try to merge with the last group
-            const lastGroup = groups[groups.length - 1];
-            // Allow merging even if it slightly exceeds maxGroupSize to avoid stragglers
-            // (Soft limit check or strict check depending on requirements. Here we allow slight overflow if needed or just push it)
-             if (lastGroup.length + currentGroup.length <= config.maxGroupSize + 1) { // Allow +1 for edge case
-                lastGroup.push(...currentGroup);
-            } else {
-                groups.push(currentGroup);
-            }
+    });
+
+    // 4. Final sweep: If any extreme straggler tables exist (e.g. 1 person), fold them into any other table regardless of intent
+    const finalOptimizedGroups = [];
+    const extremeStragglers = [];
+
+    allGroups.forEach(group => {
+        if (group.members.length < config.minGroupSize) {
+            extremeStragglers.push(...group.members);
         } else {
-            // If it's the only group, push it even if small
-            groups.push(currentGroup);
+            finalOptimizedGroups.push(group);
         }
-    }
-    
-    return groups;
-}
+    });
 
-/**
- * Optimizes groups by balancing sizes and improving score distribution.
- */
-function optimizeGroups(groups, config) {
-    let optimizedGroups = [...groups];
-    
-    // Handle groups that are too small
-    optimizedGroups = handleSmallGroups(optimizedGroups, config);
-    
-    // Balance group sizes
-    optimizedGroups = balanceGroupSizes(optimizedGroups, config);
-    
-    // Add diversity if requested
-    if (config.diversityFactor > 0) {
-        optimizedGroups = addDiversity(optimizedGroups, config);
-    }
-    
-    return optimizedGroups;
-}
-
-/**
- * Handles groups that are smaller than the minimum size.
- * Merges small groups or distributes members to other groups.
- */
-function handleSmallGroups(groups, config) {
-    const result = [];
-    const smallGroupsUsers = [];
-    
-    // Separate valid groups and members from small groups
-    for (const group of groups) {
-        if (group.length >= config.minGroupSize) {
-            result.push(group);
+    extremeStragglers.forEach(straggler => {
+        if (finalOptimizedGroups.length > 0) {
+            // Sort by size ascending
+            finalOptimizedGroups.sort((a, b) => a.members.length - b.members.length);
+            finalOptimizedGroups[0].members.push(straggler);
+            finalOptimizedGroups[0].size++;
         } else {
-            smallGroupsUsers.push(...group);
+            // Literally the only people in the whole system
+            finalOptimizedGroups.push(finalizeGroupObject([straggler], 1, 'mixed', eventDate));
         }
-    }
-    
-    // Distribute members from small groups
-    while (smallGroupsUsers.length > 0) {
-        // If we have enough stragglers to form a valid group
-        if (smallGroupsUsers.length >= config.minGroupSize) {
-            const newGroupSize = Math.min(smallGroupsUsers.length, config.idealGroupSize);
-            // Optimization: Process from the end to avoid costly array shifting
-            result.push(smallGroupsUsers.splice(smallGroupsUsers.length - newGroupSize, newGroupSize));
+    });
+
+    return finalOptimizedGroups;
+}
+
+/**
+ * Helper to extract a balanced group from a pool of users.
+ * Attempts to naturally balance Talkers (Catalyst/Storyteller) with Listeners (Interviewer/Listener)
+ */
+function extractBalancedGroup(userPool, targetSize) {
+    const group = [];
+    const remainingUsers = [...userPool];
+
+    // Track what roles we currently have at the table
+    const tableRoles = {
+        catalyst: 0,
+        storyteller: 0,
+        interviewer: 0,
+        listener: 0
+    };
+
+    for (let i = 0; i < targetSize; i++) {
+        if (remainingUsers.length === 0) break;
+
+        // Figure out what the table needs right now
+        // A perfect table is balanced between Output (catalyst/storyteller) and Input (interviewer/listener)
+        const outputEnergy = tableRoles.catalyst + tableRoles.storyteller;
+        const inputEnergy = tableRoles.interviewer + tableRoles.listener;
+
+        let preferredRoles = [];
+        if (outputEnergy > inputEnergy) {
+            // We have too many talkers, find a listener/interviewer
+            preferredRoles = ['interviewer', 'listener', 'storyteller', 'catalyst'];
         } else {
-            // Not enough to form a group, distribute them one by one
-            // Optimization: Process from the end using pop() instead of shift() to avoid O(N) shift operation
-            const userToPlace = smallGroupsUsers.pop();
-            const bestGroup = findBestGroup(userToPlace, result, config);
-            
-            if (bestGroup) {
-                // Add to best group. Allow slightly exceeding maxGroupSize to accommodate stragglers.
-                // This prevents infinite loops or leaving users behind.
-                bestGroup.push(userToPlace);
-                bestGroup.averageScore = undefined; // Invalidate cached scores
-                bestGroup.scoreSum = undefined;
-            } else {
-                // If no existing group is suitable (e.g., all are way too far in score),
-                // we might have to create a small group or force fit.
-                // Strategy: Force fit into the last group if no better option exists, 
-                // or create a new undersized group if absolutely necessary (though we try to avoid this).
-                if (result.length > 0) {
-                    const lastGroup = result[result.length - 1];
-                    lastGroup.push(userToPlace);
-                    lastGroup.averageScore = undefined; // Invalidate cached scores
-                    lastGroup.scoreSum = undefined;
-                } else {
-                    // No groups exist at all, so this is the only user?
-                    result.push([userToPlace]);
-                }
-            }
+            // We need a conversation starter
+            preferredRoles = ['catalyst', 'storyteller', 'interviewer', 'listener'];
         }
+
+        // Find the first user in the remaining pool that matches the highest preferred role we can find
+        let userIndexToPull = -1;
+        for (const role of preferredRoles) {
+            userIndexToPull = remainingUsers.findIndex(u => u.personalityResults.fullProfile.dominantRole === role);
+            if (userIndexToPull !== -1) break; // Found someone!
+        }
+
+        // If somehow we didn't find anyone (should be impossible), just grab the first person
+        if (userIndexToPull === -1) userIndexToPull = 0;
+
+        // Extract them
+        const user = remainingUsers.splice(userIndexToPull, 1)[0];
+        group.push(user);
+        tableRoles[user.personalityResults.fullProfile.dominantRole]++;
     }
-    
-    return result;
+
+    return { group, remainingUsers };
 }
 
 /**
- * Finds the best group for a user based on personality score similarity.
+ * Formats the final group object for the UI
  */
-function findBestGroup(user, groups, config) {
-    let bestGroup = null;
-    let bestScoreDiff = Infinity;
-    
-    for (const group of groups) {
-        // Calculate average score of the group
-        const groupAverage = calculateAverageScore(group);
-        const scoreDifference = Math.abs(user.personalityResults.score - groupAverage);
-        
-        // We prefer groups that haven't exploded in size, but we might pick a full group if it's the only option
-        // Weight the score difference by how full the group is? 
-        // For simplicity, just look for the closest score match.
-        
-        if (scoreDifference < bestScoreDiff) {
-            bestScoreDiff = scoreDifference;
-            bestGroup = group;
-        }
-    }
-    
-    return bestGroup;
-}
+function finalizeGroupObject(members, tableNum, intent, eventDate) {
+    // Calculate new average energy for the UI to display
+    const sum = members.reduce((acc, user) => acc + (user.personalityResults?.score || 0), 0);
+    const average = members.length > 0 ? Math.round(sum / members.length) : 0;
 
-/**
- * Balances group sizes to be closer to the ideal size.
- */
-function balanceGroupSizes(groups, config) {
-    const balanced = [...groups];
-    
-    // Find groups that are too large and too small
-    const largeGroups = balanced.filter(g => g.length > config.idealGroupSize);
-    const smallGroups = balanced.filter(g => g.length < config.idealGroupSize && g.length >= config.minGroupSize);
-    
-    for (const largeGroup of largeGroups) {
-        while (largeGroup.length > config.idealGroupSize) {
-            const memberToMove = largeGroup.pop(); // Remove last member (usually extreme score)
-            largeGroup.averageScore = undefined; // Invalidate cached scores
-            largeGroup.scoreSum = undefined;
-            
-            const targetGroup = findBestGroup(memberToMove, smallGroups, config);
-            
-            if (targetGroup && targetGroup.length < config.idealGroupSize) {
-                targetGroup.push(memberToMove);
-                targetGroup.averageScore = undefined; // Invalidate cached scores
-                targetGroup.scoreSum = undefined;
-            } else {
-                // If no suitable group, put member back and stop trying for this group
-                largeGroup.push(memberToMove);
-                largeGroup.averageScore = undefined; // Invalidate cached scores
-                largeGroup.scoreSum = undefined;
-                break;
-            }
-        }
-    }
-    
-    return balanced;
-}
-
-/**
- * Adds some diversity to groups if requested by swapping members.
- */
-function addDiversity(groups, config) {
-    if (config.diversityFactor <= 0) return groups;
-    
-    const swapAttempts = Math.floor(groups.length * config.diversityFactor * 2);
-    
-    for (let i = 0; i < swapAttempts; i++) {
-        // Pick two random groups
-        const g1Idx = Math.floor(Math.random() * groups.length);
-        const g2Idx = Math.floor(Math.random() * groups.length);
-        
-        if (g1Idx === g2Idx) continue;
-        
-        const group1 = groups[g1Idx];
-        const group2 = groups[g2Idx];
-        
-        if (group1.length <= config.minGroupSize || group2.length <= config.minGroupSize) continue;
-        
-        // Pick random members
-        const m1Idx = Math.floor(Math.random() * group1.length);
-        const m2Idx = Math.floor(Math.random() * group2.length);
-        
-        const member1 = group1[m1Idx];
-        const member2 = group2[m2Idx];
-        
-        // Check if swap is acceptable (scores still within range)
-        // Optimization: Use cached sum to calculate new average mathematically
-        const g1Sum = group1.scoreSum !== undefined ? group1.scoreSum : group1.reduce((acc, u) => acc + (u.personalityResults?.score || 0), 0);
-        const g2Sum = group2.scoreSum !== undefined ? group2.scoreSum : group2.reduce((acc, u) => acc + (u.personalityResults?.score || 0), 0);
-        
-        // Ensure sums are cached
-        group1.scoreSum = g1Sum;
-        group2.scoreSum = g2Sum;
-
-        const m1Score = member1.personalityResults?.score || 0;
-        const m2Score = member2.personalityResults?.score || 0;
-
-        // Safety check to avoid division by zero
-        const g1Avg = group1.length > 1 ? Math.round((g1Sum - m1Score) / (group1.length - 1)) : 0;
-        const g2Avg = group2.length > 1 ? Math.round((g2Sum - m2Score) / (group2.length - 1)) : 0;
-
-        const diff1 = Math.abs(m2Score - g1Avg);
-        const diff2 = Math.abs(m1Score - g2Avg);
-        
-        // Allow swap if it doesn't break the threshold too badly (allow slightly looser threshold for diversity)
-        if (diff1 <= config.scoreThreshold * 1.5 && diff2 <= config.scoreThreshold * 1.5) {
-            group1[m1Idx] = member2;
-            group2[m2Idx] = member1;
-
-            // Update cached sums and invalidate averageScore
-            group1.scoreSum = g1Sum - m1Score + m2Score;
-            group2.scoreSum = g2Sum - m2Score + m1Score;
-            group1.averageScore = undefined;
-            group2.averageScore = undefined;
-        }
-    }
-    
-    return groups;
-}
-
-// Utility functions
-
-function calculateAverageScore(group) {
-    if (!group || group.length === 0) return 0;
-
-    // Return cached average if available
-    if (group.averageScore !== undefined) {
-        return group.averageScore;
-    }
-
-    const sum = group.reduce((acc, user) => acc + (user.personalityResults?.score || 0), 0);
-    const average = Math.round(sum / group.length);
-
-    // Cache both sum and average to avoid redundant calculations
-    group.scoreSum = sum;
-    group.averageScore = average;
-
-    return average;
-}
-
-function calculateScoreRange(group) {
-    if (!group || group.length === 0) return { min: 0, max: 0 };
-    const scores = group.map(user => user.personalityResults?.score || 0);
     return {
-        min: Math.min(...scores),
-        max: Math.max(...scores)
+        id: `group_${Date.now()}_${tableNum}`,
+        members: members,
+        size: members.length,
+        intent: intent,
+        averageScore: average,
+        createdAt: new Date().toISOString(),
+        tableAssignment: `Table ${tableNum} (${intent.replace('_', ' ')})`,
+        eventDate
     };
 }
 
@@ -366,25 +207,25 @@ function calculateScoreRange(group) {
  */
 function generateTableAssignmentEmail(group, eventDetails) {
     const memberNames = group.members.map(m => `${m.firstName} ${m.lastName}`).join(', ');
-    
+
     return {
         subject: `Your Table Assignment for Mindful Dining - ${eventDetails.date}`,
         html: `
             <h2>Your Table Assignment</h2>
-            <p>We're excited to confirm your table assignment for our Mindful Dining experience!</p>
+            <p>We're excited to confirm your naturally balanced table assignment for our Mindful Dining experience!</p>
             
             <h3>Event Details:</h3>
             <ul>
                 <li><strong>Date:</strong> ${eventDetails.date}</li>
                 <li><strong>Time:</strong> ${eventDetails.time}</li>
-                <li><strong>Table:</strong> ${group.tableAssignment}</li>
+                <li><strong>Table Concept:</strong> ${group.intent.replace('_', ' ').toUpperCase()}</li>
             </ul>
             
             <h3>Your Dining Companions:</h3>
-            <p>Based on your personality assessment, you'll be dining with:</p>
+            <p>Based on your intent and conversational style, you'll be dining with:</p>
             <p><em>${memberNames}</em></p>
             
-            <p>We've carefully matched you based on compatible communication styles to ensure a wonderful evening.</p>
+            <p>We've carefully curated this table to ensure a dynamic, engaging, and perfectly balanced evening.</p>
         `
     };
 }
@@ -393,15 +234,11 @@ function generateTableAssignmentEmail(group, eventDetails) {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         createDiningGroups,
-        generateTableAssignmentEmail,
-        calculateAverageScore,
-        calculateScoreRange
+        generateTableAssignmentEmail
     };
 } else {
     window.GroupingAlgorithm = {
         createDiningGroups,
-        generateTableAssignmentEmail,
-        calculateAverageScore,
-        calculateScoreRange
+        generateTableAssignmentEmail
     };
 }

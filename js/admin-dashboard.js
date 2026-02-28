@@ -391,9 +391,11 @@ function displayGroupsPreview(groups) {
                         <div class="member-item">
                             <div class="member-info">
                                 <strong>${member.firstName} ${member.lastName}</strong><br>
-                                <small>${member.email}</small>
+                                <small>${member.email} | ${member.personalityResults.fullProfile ? member.personalityResults.fullProfile.dominantRole : 'Unknown Role'}</small>
                             </div>
-                            <div class="member-score">${member.personalityResults.score}</div>
+                            <div class="member-score" title="Energy Score" style="background-color: var(--primary-color); color: white; padding: 5px 10px; border-radius: 15px; font-weight: bold;">
+                                <i class="fas fa-bolt"></i> ${member.personalityResults.score}
+                            </div>
                         </div>
                     `).join('')}
                 </div>
@@ -596,16 +598,18 @@ function displayGroups(groups) {
         <div class="group-container">
             <div class="group-header">
                 <span>${group.tableAssignment} (${group.size} people)</span>
-                <span>Event: ${group.eventDate || 'Unknown'} | Created: ${new Date(group.createdAt).toLocaleDateString()}</span>
+                <span>Event: ${group.eventDate || 'Unknown'} | Avg Energy: ${group.averageScore}</span>
             </div>
             <div class="group-members">
                 ${group.members.map(member => `
                     <div class="member-item">
                         <div class="member-info">
                             <strong>${member.firstName} ${member.lastName}</strong><br>
-                            <small>${member.email} | ${member.personalityResults.personality?.type || 'Unknown Type'}</small>
+                            <small>${member.email} | <b>Role:</b> ${member.personalityResults.fullProfile ? member.personalityResults.fullProfile.dominantRole : 'Unknown'}</small>
                         </div>
-                        <div class="member-score">${member.personalityResults.score}</div>
+                        <div class="member-score" title="Energy Score" style="background-color: var(--primary-color); color: white; padding: 5px 10px; border-radius: 15px; font-weight: bold;">
+                            <i class="fas fa-bolt"></i> ${member.personalityResults.score}
+                        </div>
                     </div>
                 `).join('')}
             </div>
